@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOXL 무한매수법 — 라오어 전략 시스템</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#0a0a0f;--bg2:#111118;--bg3:#18181f;--bg4:#1e1e28;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+  --accent:#f0c040;--accent2:#e8883a;--green:#2ecc8a;--red:#e85555;--blue:#4a9eff;--purple:#9b6dff;
+  --text:#f0ede8;--text2:#9a9890;--text3:#5a5856;
+  --mono:'JetBrains Mono',monospace;--sans:'Noto Sans KR',sans-serif;--display:'Bebas Neue',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;overflow-x:hidden}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+/* HEADER */
+header{position:relative;padding:70px 40px 50px;overflow:hidden;border-bottom:1px solid var(--border)}
+header::before{content:'';position:absolute;top:-100px;right:-100px;width:600px;height:600px;background:radial-gradient(circle,rgba(240,192,64,.07) 0%,transparent 70%);pointer-events:none}
+.header-inner{max-width:1200px;margin:0 auto;position:relative;z-index:1}
+.header-label{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.2em;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.header-label::before{content:'';width:28px;height:1px;background:var(--accent)}
+h1{font-family:var(--display);font-size:clamp(44px,7vw,88px);line-height:.92;color:var(--text);letter-spacing:.02em;margin-bottom:20px}
+h1 span{color:var(--accent)}
+.header-desc{font-size:14px;color:var(--text2);max-width:520px;line-height:1.8}
+.header-meta{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap}
+.meta-pill{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:7px 14px;font-family:var(--mono);font-size:11px;color:var(--text2);display:flex;align-items:center;gap:6px}
+.meta-pill span{color:var(--accent);font-weight:600}
+
+/* NAV */
+nav{background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;backdrop-filter:blur(8px)}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;overflow-x:auto}
+.nav-btn{padding:15px 18px;font-family:var(--sans);font-size:12px;font-weight:500;color:var(--text3);background:none;border:none;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s;letter-spacing:.02em}
+.nav-btn:hover{color:var(--text2)}
+.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* LAYOUT */
+main{max-width:1200px;margin:0 auto;padding:0 40px 80px}
+.page-section{display:none}
+.page-section.active{display:block}
+.section{padding:44px 0;border-bottom:1px solid var(--border)}
+.section:last-child{border-bottom:none}
+.sec-hd{display:flex;align-items:baseline;gap:14px;margin-bottom:28px}
+.sec-num{font-family:var(--display);font-size:44px;color:var(--border2);line-height:1}
+.sec-title{font-family:var(--display);font-size:26px;letter-spacing:.05em}
+.sec-sub{font-size:12px;color:var(--text3);margin-top:3px;font-family:var(--mono)}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:22px}
+.card-a{border-color:rgba(240,192,64,.2)}
+.card-g{border-color:rgba(46,204,138,.2)}
+.card-r{border-color:rgba(232,85,85,.2)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+
+/* METRICS */
+.metric{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:18px}
+.mlabel{font-size:10px;color:var(--text3);font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px}
+.mval{font-family:var(--display);font-size:30px;letter-spacing:.02em;line-height:1}
+.pos{color:var(--green)}.neg{color:var(--red)}.acc{color:var(--accent)}.blu{color:var(--blue)}.neu{color:var(--text)}
+
+/* RULE TABLE */
+.rt{width:100%;border-collapse:collapse}
+.rt th{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.rt td{padding:12px 14px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text2)}
+.rt tr:last-child td{border-bottom:none}
+.rt tr:hover td{background:rgba(255,255,255,.02)}
+.mb{display:inline-flex;align-items:center;justify-content:center;width:44px;height:22px;border-radius:4px;font-family:var(--mono);font-size:11px;font-weight:600}
+.m1{background:rgba(74,158,255,.12);color:#4a9eff;border:1px solid rgba(74,158,255,.2)}
+.m2{background:rgba(240,192,64,.1);color:#f0c040;border:1px solid rgba(240,192,64,.2)}
+.m3{background:rgba(232,136,58,.12);color:#e8883a;border:1px solid rgba(232,136,58,.2)}
+.m5{background:rgba(232,85,85,.12);color:#e85555;border:1px solid rgba(232,85,85,.2)}
+.m7{background:rgba(155,109,255,.12);color:#9b6dff;border:1px solid rgba(155,109,255,.2)}
+.m10{background:rgba(232,85,85,.2);color:#ff6666;border:1px solid rgba(232,85,85,.4)}
+.m15{background:rgba(255,50,50,.25);color:#ff4444;border:1px solid rgba(255,50,50,.5)}
+
+/* CONTROLS */
+.ctrl-box{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
+.ctrl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:18px}
+.ctrl-row{display:flex;flex-direction:column;gap:7px}
+.clabel{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--text3);text-transform:uppercase}
+.cval{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--accent)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:3px;background:var(--bg4);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--bg)}
+.tgt-btns{display:flex;gap:6px}
+.tbt{flex:1;padding:7px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--text3);cursor:pointer;transition:all .15s}
+.tbt.on{background:rgba(240,192,64,.12);border-color:var(--accent);color:var(--accent)}
+
+/* CHARTS */
+.cw{position:relative;width:100%;height:240px}
+.ctitle{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.leg{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px}
+.li{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;color:var(--text3)}
+.ld{width:10px;height:3px;border-radius:1px}
+
+/* DETAIL TABLE */
+.dtw{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+.dt{width:100%;border-collapse:collapse;font-size:11px}
+.dt th{background:var(--bg3);font-family:var(--mono);font-size:9.5px;letter-spacing:.07em;color:var(--text3);padding:9px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0}
+.dt td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.03);color:var(--text2);white-space:nowrap;font-family:var(--mono);font-size:10.5px}
+.dt tr.sr{background:rgba(46,204,138,.05)}
+.dt tr:hover td{background:rgba(255,255,255,.02)}
+
+/* COMPARE */
+.cmp-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.cc{border-radius:10px;padding:16px;background:var(--bg3);border:1px solid var(--border);transition:border-color .2s}
+.ch{font-family:var(--display);font-size:20px;letter-spacing:.04em;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.cr{display:flex;justify-content:space-between;font-size:10.5px;padding:2.5px 0;font-family:var(--mono)}
+.cl{color:var(--text3)}.cv{font-weight:600}
+.cs{border-color:rgba(240,192,64,.25)}.cs .ch{color:var(--accent)}
+.ct{border-color:rgba(74,158,255,.2)}.ct .ch{color:var(--blue)}
+.cm{border-color:rgba(155,109,255,.2)}.cm .ch{color:var(--purple)}
+.cn{border-color:rgba(46,204,138,.2)}.cn .ch{color:var(--green)}
+
+/* ETF INFO */
+.etf-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.etf-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:22px}
+.etf-ticker{font-family:var(--display);font-size:34px;margin-bottom:3px}
+.etf-name{font-size:11px;color:var(--text3);margin-bottom:14px}
+.etf-r{display:flex;justify-content:space-between;font-size:11px;padding:5px 0;border-bottom:1px solid var(--border)}
+.etf-r:last-child{border-bottom:none}
+.ek{color:var(--text3);font-family:var(--mono);font-size:9.5px;text-transform:uppercase;letter-spacing:.07em}
+.ev{font-family:var(--mono);font-size:10.5px;font-weight:600}
+.stars{color:var(--accent);font-size:12px;letter-spacing:1px}
+
+/* INNER TABS */
+.itabs{display:flex;gap:4px;margin-bottom:18px;flex-wrap:wrap}
+.itab{padding:6px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:10.5px;color:var(--text3);cursor:pointer;transition:all .15s}
+.itab.on{background:rgba(240,192,64,.1);border-color:rgba(240,192,64,.3);color:var(--accent)}
+.tc{display:none}.tc.on{display:block}
+
+/* WARN */
+.wbox{background:rgba(232,85,85,.06);border:1px solid rgba(232,85,85,.2);border-radius:10px;padding:18px;margin-top:20px}
+.wtitle{font-family:var(--mono);font-size:10px;color:var(--red);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.wtext{font-size:12px;color:var(--text2);line-height:1.8}
+
+/* SRC NOTE */
+.src-note{font-family:var(--mono);font-size:10px;color:var(--text3);padding:7px 11px;background:var(--bg3);border-left:2px solid var(--green);border-radius:0 6px 6px 0;margin-bottom:18px;line-height:1.7}
+
+/* RANK */
+.rank-row{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)}
+.rank-row:last-child{border-bottom:none}
+.rnum{font-family:var(--display);font-size:28px;color:var(--border2);width:36px;flex-shrink:0}
+.rticker{font-family:var(--display);font-size:18px;width:64px;flex-shrink:0}
+.rbar-w{flex:1;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.rbar{height:100%;border-radius:3px;transition:width .7s ease}
+.rval{font-family:var(--mono);font-size:12px;font-weight:600;min-width:72px;text-align:right}
+
+/* JOURNAL */
+.jlabel{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:5px;display:block}
+.jinput{background:var(--bg4);border:1px solid var(--border2);border-radius:8px;padding:9px 13px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none;transition:border-color .2s;width:100%}
+.jinput:focus{border-color:rgba(240,192,64,.4)}
+.jinput::placeholder{color:var(--text3)}
+.jbtn{padding:7px 18px;background:rgba(240,192,64,.12);border:1px solid rgba(240,192,64,.25);border-radius:8px;color:var(--accent);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.jbtn:hover{background:rgba(240,192,64,.22)}
+.jbtn-g{background:rgba(46,204,138,.1);border-color:rgba(46,204,138,.25);color:var(--green)}
+.jbtn-g:hover{background:rgba(46,204,138,.2)}
+.jbtn-r{background:rgba(232,85,85,.08);border-color:rgba(232,85,85,.2);color:var(--red)}
+.jbtn-r:hover{background:rgba(232,85,85,.16)}
+.gauge-wrap{position:relative;height:44px;background:var(--bg4);border-radius:10px;overflow:hidden;margin-bottom:10px}
+.gauge-bar{height:100%;width:0%;border-radius:10px;transition:width .6s ease;position:relative;background:linear-gradient(90deg,rgba(74,158,255,.6),rgba(240,192,64,.8),rgba(232,85,85,.9))}
+.gauge-lbl{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:13px;font-weight:600;color:#fff;white-space:nowrap}
+.stage-chip{padding:4px 11px;border-radius:16px;font-family:var(--mono);font-size:10.5px;font-weight:600;border:1px solid;transition:all .3s;cursor:default}
+.stage-chip.done{opacity:1}
+.stage-chip.pending{opacity:.3}
+.jcycle-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg4);border-radius:8px;border-left:3px solid var(--green);flex-wrap:wrap;gap:8px}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  header{padding:44px 20px 36px}
+  main{padding:0 16px 60px}
+  .g2,.g3,.g4{grid-template-columns:1fr}
+  .cmp-grid{grid-template-columns:repeat(2,1fr)}
+  h1{font-size:44px}
+  .sec-num{font-size:30px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-label">라오어 전략 시스템 v2.0</div>
+    <h1>SOXL<br><span>무한매수법</span></h1>
+    <p class="header-desc">반도체 3배 레버리지 ETF 기반 분할매수 전략. 하락 시 비중을 확대해 평단가를 낮추고, 목표 수익률 달성 시 전량 매도 후 즉시 재진입합니다.</p>
+    <div class="header-meta">
+      <div class="meta-pill">종목 <span>SOXL</span></div>
+      <div class="meta-pill">레버리지 <span>3x</span></div>
+      <div class="meta-pill">추종지수 <span>반도체 ICE</span></div>
+      <div class="meta-pill">전략 <span>분할매수 + 급락가중</span></div>
+      <div class="meta-pill">백테스트 <span>2026.1.2 ~ 3.18</span></div>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="nav-inner">
+    <button class="nav-btn active" onclick="go('strategy',this)">전략 개요</button>
+    <button class="nav-btn" onclick="go('rules',this)">매수 규칙</button>
+    <button class="nav-btn" onclick="go('simulator',this)">시뮬레이터</button>
+    <button class="nav-btn" onclick="go('backtest',this)">백테스트</button>
+    <button class="nav-btn" onclick="go('compare',this)">ETF 비교</button>
+    <button class="nav-btn" onclick="go('risk',this)">리스크 관리</button>
+    <button class="nav-btn" onclick="go('journal',this)">매매일지</button>
+  </div>
+</nav>
+
+<main>
+
+<!-- ① 전략 개요 -->
+<div id="sec-strategy" class="page-section active">
+<div class="section">
+  <div class="sec-hd"><div class="sec-num">01</div><div><div class="sec-title">전략 개요</div><div class="sec-sub">// core concept</div></div></div>
+  <div class="g3" style="margin-bottom:16px">
+    <div class="card card-a"><div class="mlabel">핵심 원리</div><div style="font-size:14px;color:var(--text);line-height:1.8;margin-top:8px">하락이 클수록 더 많이 매수해 평단가를 빠르게 낮추고, 작은 반등으로도 수익 전환 가능한 구조</div></div>
+    <div class="card card-g"><div class="mlabel">매수 방식</div><div style="font-size:14px;color:var(--text);line-height:1.8;margin-top:8px">총 투자금 40분할 × 전일 대비 등락률에 따라 1배~15배 가중 매수</div></div>
+    <div class="card"><div class="mlabel">매도 방식</div><div style="font-size:14px;color:var(--text);line-height:1.8;margin-top:8px">평단가 대비 목표 수익률(3~5%) 달성 시 전량 매도 → 즉시 새 사이클 시작</div></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="mlabel" style="margin-bottom:14px">평단가 하락 원리</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:8px">균등 매수</div>
+          <div style="display:flex;flex-direction:column;gap:6px" id="eqViz"></div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:8px">무한매수 (가중)</div>
+          <div style="display:flex;flex-direction:column;gap:6px" id="wtViz"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="mlabel" style="margin-bottom:14px">SOXL 선택 이유</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;gap:10px"><div style="width:30px;height:30px;border-radius:6px;background:rgba(240,192,64,.12);border:1px solid rgba(240,192,64,.2);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">⚡</div><div><div style="font-size:13px;font-weight:500;margin-bottom:2px">극단적 변동성</div><div style="font-size:11px;color:var(--text3)">일간 -10~18% 급락이 잦아 ×10~15배 집중 매수 기회 발생</div></div></div>
+        <div style="display:flex;gap:10px"><div style="width:30px;height:30px;border-radius:6px;background:rgba(46,204,138,.1);border:1px solid rgba(46,204,138,.2);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">↗</div><div><div style="font-size:13px;font-weight:500;margin-bottom:2px">빠른 반등 특성</div><div style="font-size:11px;color:var(--text3)">AI·반도체 기대로 급락 후 V자 반등 패턴 빈번</div></div></div>
+        <div style="display:flex;gap:10px"><div style="width:30px;height:30px;border-radius:6px;background:rgba(74,158,255,.1);border:1px solid rgba(74,158,255,.2);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">💧</div><div><div style="font-size:13px;font-weight:500;margin-bottom:2px">높은 유동성</div><div style="font-size:11px;color:var(--text3)">AUM ~$7.5B, 일일 거래량 수천만 주, 슬리피지 최소</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ② 매수 규칙 -->
+<div id="sec-rules" class="page-section">
+<div class="section">
+  <div class="sec-hd"><div class="sec-num">02</div><div><div class="sec-title">매수 규칙</div><div class="sec-sub">// buy rules & multiplier</div></div></div>
+  <div class="g2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="mlabel" style="margin-bottom:14px">하락폭별 매수 배율 (보완 전략 적용)</div>
+      <table class="rt">
+        <thead><tr><th>전일 대비 등락</th><th>배율</th><th>1,000만 기준</th><th>근거</th></tr></thead>
+        <tbody>
+          <tr><td style="color:var(--blue)">0% 이상</td><td><span class="mb m1">×1</span></td><td style="font-family:var(--mono)">25만원</td><td style="color:var(--text3)">기본 매수</td></tr>
+          <tr><td style="color:var(--blue)">-1% ~ 0%</td><td><span class="mb m1">×1</span></td><td style="font-family:var(--mono)">25만원</td><td style="color:var(--text3)">소폭, 유지</td></tr>
+          <tr><td style="color:var(--accent)">-3% ~ -1%</td><td><span class="mb m2">×2</span></td><td style="font-family:var(--mono)">50만원</td><td style="color:var(--text3)">의미 있는 하락</td></tr>
+          <tr><td style="color:var(--accent2)">-5% ~ -3%</td><td><span class="mb m3">×3</span></td><td style="font-family:var(--mono)">75만원</td><td style="color:var(--text3)">본격 하락</td></tr>
+          <tr><td style="color:var(--red)">-8% ~ -5%</td><td><span class="mb m5">×5</span></td><td style="font-family:var(--mono)">125만원</td><td style="color:var(--text3)">급락 — 핵심 기회</td></tr>
+          <tr><td style="color:var(--red)">-10% ~ -8%</td><td><span class="mb m7">×7</span></td><td style="font-family:var(--mono)">175만원</td><td style="color:var(--text3)">강한 급락</td></tr>
+          <tr><td style="color:#ff6666">-15% ~ -10%</td><td><span class="mb m10">×10</span></td><td style="font-family:var(--mono)">250만원</td><td style="color:var(--text3)">SOXL 특성 급락</td></tr>
+          <tr><td style="color:#ff4444">-15% 초과</td><td><span class="mb m15">×15</span></td><td style="font-family:var(--mono)">375만원</td><td style="color:var(--text3)">극단 급락 (실제 발생)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card card-g">
+        <div class="mlabel" style="margin-bottom:10px">보완 전략 4가지</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;gap:8px"><div style="width:18px;height:18px;border-radius:50%;background:rgba(240,192,64,.15);border:1px solid rgba(240,192,64,.3);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--accent);flex-shrink:0">1</div><div style="font-size:12px;color:var(--text2)"><span style="color:var(--text);font-weight:500">초기 0.5배</span> — 새 사이클 1~2일차 절반만 투입</div></div>
+          <div style="display:flex;gap:8px"><div style="width:18px;height:18px;border-radius:50%;background:rgba(240,192,64,.15);border:1px solid rgba(240,192,64,.3);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--accent);flex-shrink:0">2</div><div style="font-size:12px;color:var(--text2)"><span style="color:var(--text);font-weight:500">7단계 세분화</span> — -15% 초과 시 최대 ×15배</div></div>
+          <div style="display:flex;gap:8px"><div style="width:18px;height:18px;border-radius:50%;background:rgba(240,192,64,.15);border:1px solid rgba(240,192,64,.3);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--accent);flex-shrink:0">3</div><div style="font-size:12px;color:var(--text2)"><span style="color:var(--text);font-weight:500">즉시 재시작</span> — 매도 즉시 다음 사이클 시작</div></div>
+          <div style="display:flex;gap:8px"><div style="width:18px;height:18px;border-radius:50%;background:rgba(240,192,64,.15);border:1px solid rgba(240,192,64,.3);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--accent);flex-shrink:0">4</div><div style="font-size:12px;color:var(--text2)"><span style="color:var(--text);font-weight:500">40분할 기준</span> — 총 투자금 ÷ 40 = 1회 기본 단위</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="mlabel" style="margin-bottom:10px">매도 기준</div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <div style="display:flex;justify-content:space-between;padding:9px 12px;background:var(--bg4);border-radius:7px;border:1px solid rgba(46,204,138,.15)"><span style="font-size:12px;color:var(--text2)">매도 트리거</span><span style="font-family:var(--mono);font-size:12px;color:var(--green)">평단가 대비 +목표% 달성</span></div>
+          <div style="display:flex;justify-content:space-between;padding:9px 12px;background:var(--bg4);border-radius:7px"><span style="font-size:12px;color:var(--text2)">권장 목표</span><span style="font-family:var(--mono);font-size:12px;color:var(--accent)">3~5% (장세에 따라 조정)</span></div>
+          <div style="display:flex;justify-content:space-between;padding:9px 12px;background:var(--bg4);border-radius:7px"><span style="font-size:12px;color:var(--text2)">매도 방식</span><span style="font-family:var(--mono);font-size:12px;color:var(--text)">전량 일괄 매도</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ③ 시뮬레이터 -->
+<div id="sec-simulator" class="page-section">
+<div class="section">
+  <div class="sec-hd"><div class="sec-num">03</div><div><div class="sec-title">시뮬레이터</div><div class="sec-sub">// live calculator</div></div></div>
+  <div class="ctrl-box">
+    <div class="ctrl-grid">
+      <div class="ctrl-row"><div class="clabel">총 투자금</div><input type="range" min="5000000" max="100000000" step="1000000" value="10000000" id="siFund" oninput="simCalc()"><div class="cval" id="siFundV">1,000만원</div></div>
+      <div class="ctrl-row"><div class="clabel">SOXL 현재가 ($)</div><input type="range" min="20" max="100" step="1" value="55" id="siPrice" oninput="simCalc()"><div class="cval" id="siPriceV">$55</div></div>
+      <div class="ctrl-row"><div class="clabel">환율 (원/$)</div><input type="range" min="1300" max="1500" step="10" value="1380" id="siRate" oninput="simCalc()"><div class="cval" id="siRateV">1,380원</div></div>
+      <div class="ctrl-row"><div class="clabel">목표 수익률</div><input type="range" min="1" max="10" step="0.5" value="3" id="siTarget" oninput="simCalc()"><div class="cval" id="siTargetV">3.0%</div></div>
+    </div>
+  </div>
+  <div id="siMetrics" class="g4" style="margin-bottom:18px"></div>
+  <div class="g2">
+    <div class="card"><div class="ctitle">하락폭별 투입금액 (만원)</div><div class="cw"><canvas id="siBarC"></canvas></div></div>
+    <div class="card"><div class="ctitle">목표 수익률별 1사이클 수익 (만원)</div><div class="cw"><canvas id="siTgtC"></canvas></div></div>
+  </div>
+</div>
+</div>
+
+<!-- ④ 백테스트 -->
+<div id="sec-backtest" class="page-section">
+<div class="section">
+  <div class="sec-hd"><div class="sec-num">04</div><div><div class="sec-title">백테스트</div><div class="sec-sub">// 2026.01.02 ~ 2026.03.18 실제 종가</div></div></div>
+  <div class="src-note">데이터 검증 — 1/2~2/26: stockanalysis.com + stockscan.io 교차검증 | 3/3·3/7·3/10·3/17·3/18: 다중소스 명시값 | 나머지 3월: 앵커포인트 간 역산</div>
+  <div class="ctrl-box">
+    <div class="ctrl-grid">
+      <div class="ctrl-row"><div class="clabel">총 투자금</div><input type="range" min="5000000" max="100000000" step="1000000" value="10000000" id="btFund" oninput="btCalc()"><div class="cval" id="btFundV">1,000만원</div></div>
+      <div class="ctrl-row"><div class="clabel">환율 (원/$)</div><input type="range" min="1300" max="1500" step="10" value="1380" id="btRate" oninput="btCalc()"><div class="cval" id="btRateV">1,380원</div></div>
+      <div class="ctrl-row"><div class="clabel">목표 수익률</div><div class="tgt-btns" id="btTgts"><button class="tbt on" onclick="setBtTgt(3,this)">3%</button><button class="tbt" onclick="setBtTgt(5,this)">5%</button><button class="tbt" onclick="setBtTgt(10,this)">10%</button></div><div class="cval" id="btTgtV">3%</div></div>
+    </div>
+  </div>
+  <div id="btMetrics" class="g4" style="margin-bottom:18px"></div>
+  <div class="itabs">
+    <button class="itab on" onclick="showItab('bt','chart',this)">차트</button>
+    <button class="itab" onclick="showItab('bt','cycle',this)">사이클 내역</button>
+    <button class="itab" onclick="showItab('bt','detail',this)">일별 상세</button>
+  </div>
+  <div id="bt-chart" class="tc on">
+    <div class="g2" style="margin-bottom:14px">
+      <div class="card"><div class="ctitle">SOXL 종가 vs 평단가</div><div class="leg"><span class="li"><span class="ld" style="background:var(--accent)"></span>종가</span><span class="li"><span class="ld" style="background:var(--red)"></span>평단가</span></div><div class="cw"><canvas id="btPriceC"></canvas></div></div>
+      <div class="card"><div class="ctitle">누적 확정 수익금 (원)</div><div class="cw"><canvas id="btProfitC"></canvas></div></div>
+    </div>
+    <div class="card"><div class="ctitle">일별 투입금액</div><div class="leg"><span class="li"><span class="ld" style="background:#4a9eff"></span>×1</span><span class="li"><span class="ld" style="background:#f0c040"></span>×2~3</span><span class="li"><span class="ld" style="background:#e8883a"></span>×5~7</span><span class="li"><span class="ld" style="background:#e85555"></span>×10~15</span></div><div class="cw" style="height:170px"><canvas id="btInvestC"></canvas></div></div>
+  </div>
+  <div id="bt-cycle" class="tc"><div class="card" id="btCycleBox"></div></div>
+  <div id="bt-detail" class="tc"><div class="dtw" style="max-height:480px;overflow-y:auto"><table class="dt"><thead><tr><th>#</th><th>날짜</th><th>종가($)</th><th>등락</th><th>배율</th><th>투입(만)</th><th>매수주</th><th>평단($)</th><th>평가손익</th><th>비고</th></tr></thead><tbody id="btDetailBody"></tbody></table></div></div>
+</div>
+</div>
+
+<!-- ⑤ ETF 비교 -->
+<div id="sec-compare" class="page-section">
+<div class="section">
+  <div class="sec-hd"><div class="sec-num">05</div><div><div class="sec-title">ETF 비교</div><div class="sec-sub">// SOXL vs TQQQ vs MAGX vs TNA</div></div></div>
+  <div class="ctrl-box">
+    <div class="ctrl-grid">
+      <div class="ctrl-row"><div class="clabel">총 투자금</div><input type="range" min="5000000" max="100000000" step="1000000" value="10000000" id="cmpFund" oninput="cmpCalc()"><div class="cval" id="cmpFundV">1,000만원</div></div>
+      <div class="ctrl-row"><div class="clabel">환율 (원/$)</div><input type="range" min="1300" max="1500" step="10" value="1380" id="cmpRate" oninput="cmpCalc()"><div class="cval" id="cmpRateV">1,380원</div></div>
+      <div class="ctrl-row"><div class="clabel">목표 수익률</div><div class="tgt-btns" id="cmpTgts"><button class="tbt on" onclick="setCmpTgt(3,this)">3%</button><button class="tbt" onclick="setCmpTgt(5,this)">5%</button><button class="tbt" onclick="setCmpTgt(10,this)">10%</button></div><div class="cval" id="cmpTgtV">3%</div></div>
+    </div>
+  </div>
+  <div class="cmp-grid" id="cmpCards"></div>
+  <div class="card" style="margin-bottom:14px"><div class="mlabel" style="margin-bottom:14px">총 수익률 순위</div><div id="rankBox"></div></div>
+  <div class="card"><div class="ctitle">누적 확정 수익금 비교</div><div class="leg"><span class="li"><span class="ld" style="background:var(--accent)"></span>SOXL</span><span class="li"><span class="ld" style="background:var(--blue)"></span>TQQQ</span><span class="li"><span class="ld" style="background:var(--purple)"></span>MAGX</span><span class="li"><span class="ld" style="background:var(--green)"></span>TNA</span></div><div class="cw"><canvas id="cmpProfitC"></canvas></div></div>
+  <div style="margin-top:18px"><div class="mlabel" style="margin-bottom:14px">ETF 상세 정보</div>
+  <div class="etf-grid">
+    <div class="etf-card"><div class="etf-ticker" style="color:var(--accent)">SOXL</div><div class="etf-name">Direxion Daily Semiconductor Bull 3x</div><div class="etf-r"><span class="ek">레버리지</span><span class="ev" style="color:var(--accent)">3배</span></div><div class="etf-r"><span class="ek">추종지수</span><span class="ev">반도체 ICE</span></div><div class="etf-r"><span class="ek">운용보수</span><span class="ev">0.75%</span></div><div class="etf-r"><span class="ek">AUM</span><span class="ev">~$7.5B</span></div><div class="etf-r"><span class="ek">적합성</span><span class="ev stars">★★★★★</span></div></div>
+    <div class="etf-card"><div class="etf-ticker" style="color:var(--blue)">TQQQ</div><div class="etf-name">ProShares UltraPro QQQ</div><div class="etf-r"><span class="ek">레버리지</span><span class="ev" style="color:var(--blue)">3배</span></div><div class="etf-r"><span class="ek">추종지수</span><span class="ev">나스닥100</span></div><div class="etf-r"><span class="ek">운용보수</span><span class="ev">0.82%</span></div><div class="etf-r"><span class="ek">AUM</span><span class="ev">~$28B</span></div><div class="etf-r"><span class="ek">적합성</span><span class="ev stars">★★★★☆</span></div></div>
+    <div class="etf-card"><div class="etf-ticker" style="color:var(--purple)">MAGX</div><div class="etf-name">Roundhill Magnificent Seven 2x</div><div class="etf-r"><span class="ek">레버리지</span><span class="ev" style="color:var(--purple)">2배</span></div><div class="etf-r"><span class="ek">추종지수</span><span class="ev">M7 (MAGS×2)</span></div><div class="etf-r"><span class="ek">운용보수</span><span class="ev">0.95%</span></div><div class="etf-r"><span class="ek">AUM</span><span class="ev">~$56M</span></div><div class="etf-r"><span class="ek">적합성</span><span class="ev stars">★★★☆☆</span></div></div>
+    <div class="etf-card"><div class="etf-ticker" style="color:var(--green)">TNA</div><div class="etf-name">Direxion Daily Small Cap Bull 3x</div><div class="etf-r"><span class="ek">레버리지</span><span class="ev" style="color:var(--green)">3배</span></div><div class="etf-r"><span class="ek">추종지수</span><span class="ev">Russell 2000</span></div><div class="etf-r"><span class="ek">운용보수</span><span class="ev">0.95%</span></div><div class="etf-r"><span class="ek">AUM</span><span class="ev">~$1.8B</span></div><div class="etf-r"><span class="ek">적합성</span><span class="ev stars">★★★☆☆</span></div></div>
+  </div></div>
+</div>
+</div>
+
+<!-- ⑥ 리스크 관리 -->
+<div id="sec-risk" class="page-section">
+<div class="section">
+  <div class="sec-hd"><div class="sec-num">06</div><div><div class="sec-title">리스크 관리</div><div class="sec-sub">// risk management</div></div></div>
+  <div class="g3" style="margin-bottom:16px">
+    <div class="card card-r"><div style="font-size:30px;margin-bottom:6px;color:var(--red)">-86%</div><div class="mlabel" style="margin-bottom:6px">2025년 SOXL 최대 낙폭</div><div style="font-size:12px;color:var(--text2);line-height:1.7">1월 고점 $72 → 4월 저점 $7.22. 매수 자금 소진 전 반등이 없으면 대규모 손실</div></div>
+    <div class="card"><div style="font-size:30px;margin-bottom:6px;color:var(--accent)">20~30%</div><div class="mlabel" style="margin-bottom:6px">권장 포트폴리오 비중</div><div style="font-size:12px;color:var(--text2);line-height:1.7">전체 투자 가능 자산의 20~30% 이내. 나머지는 현금으로 유지해 극단 하락 대비</div></div>
+    <div class="card"><div style="font-size:30px;margin-bottom:6px;color:var(--green)">40분할</div><div class="mlabel" style="margin-bottom:6px">최소 분할 횟수</div><div style="font-size:12px;color:var(--text2);line-height:1.7">40분할이 최소 기준. 여유 있으면 60분할로 더 잘게 나눠 하락 지속 시 버티는 힘 강화</div></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="mlabel" style="margin-bottom:14px">전략 적합 조건 체크리스트</div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div style="display:flex;gap:9px;align-items:center"><div style="width:18px;height:18px;border-radius:50%;background:rgba(46,204,138,.15);border:1px solid var(--green);display:flex;align-items:center;justify-content:center;color:var(--green);font-size:11px;flex-shrink:0">✓</div><div style="font-size:12px;color:var(--text2)">반도체·AI 장기 우상향에 대한 확신</div></div>
+        <div style="display:flex;gap:9px;align-items:center"><div style="width:18px;height:18px;border-radius:50%;background:rgba(46,204,138,.15);border:1px solid var(--green);display:flex;align-items:center;justify-content:center;color:var(--green);font-size:11px;flex-shrink:0">✓</div><div style="font-size:12px;color:var(--text2)">최소 6개월 이상 투자 유지 가능한 자금</div></div>
+        <div style="display:flex;gap:9px;align-items:center"><div style="width:18px;height:18px;border-radius:50%;background:rgba(46,204,138,.15);border:1px solid var(--green);display:flex;align-items:center;justify-content:center;color:var(--green);font-size:11px;flex-shrink:0">✓</div><div style="font-size:12px;color:var(--text2)">-50% 이상 평가손실에도 감정적 패닉셀 하지 않을 멘탈</div></div>
+        <div style="display:flex;gap:9px;align-items:center"><div style="width:18px;height:18px;border-radius:50%;background:rgba(46,204,138,.15);border:1px solid var(--green);display:flex;align-items:center;justify-content:center;color:var(--green);font-size:11px;flex-shrink:0">✓</div><div style="font-size:12px;color:var(--text2)">매일 종가 확인 및 기계적 매수 실행 가능한 루틴</div></div>
+        <div style="display:flex;gap:9px;align-items:center"><div style="width:18px;height:18px;border-radius:50%;background:rgba(232,85,85,.1);border:1px solid var(--red);display:flex;align-items:center;justify-content:center;color:var(--red);font-size:11px;flex-shrink:0">✗</div><div style="font-size:12px;color:var(--text3)">단기 수익이 필요한 자금으로 진입</div></div>
+        <div style="display:flex;gap:9px;align-items:center"><div style="width:18px;height:18px;border-radius:50%;background:rgba(232,85,85,.1);border:1px solid var(--red);display:flex;align-items:center;justify-content:center;color:var(--red);font-size:11px;flex-shrink:0">✗</div><div style="font-size:12px;color:var(--text3)">전체 자산의 50% 이상을 SOXL에 배분</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="mlabel" style="margin-bottom:14px">시장 상황별 전략 조정</div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div style="padding:11px;background:var(--bg4);border-radius:8px;border-left:3px solid var(--green)"><div style="font-size:11px;color:var(--green);font-family:var(--mono);margin-bottom:3px">상승장 / 낮은 변동성</div><div style="font-size:12px;color:var(--text2)">목표 수익률 5%로 상향. 조금 더 큰 수익을 노림</div></div>
+        <div style="padding:11px;background:var(--bg4);border-radius:8px;border-left:3px solid var(--accent)"><div style="font-size:11px;color:var(--accent);font-family:var(--mono);margin-bottom:3px">급락 반복 / 높은 변동성</div><div style="font-size:12px;color:var(--text2)">목표 수익률 3%로 하향. 사이클 회전 속도 극대화</div></div>
+        <div style="padding:11px;background:var(--bg4);border-radius:8px;border-left:3px solid var(--red)"><div style="font-size:11px;color:var(--red);font-family:var(--mono);margin-bottom:3px">장기 하락장 / 구조적 침체</div><div style="font-size:12px;color:var(--text2)">신규 진입 중단. 기존 포지션 보유 유지</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="wbox"><div class="wtitle">투자 위험 고지</div><div class="wtext">이 페이지의 모든 내용은 교육 및 정보 제공 목적으로만 작성되었습니다. 과거 백테스트 결과가 미래 수익을 보장하지 않으며, SOXL을 포함한 레버리지 ETF는 원금 전액 손실이 가능한 고위험 상품입니다. 투자 결정은 반드시 본인의 판단과 책임하에 이루어져야 합니다.</div></div>
+</div>
+</div>
+
+<!-- ⑦ 매매일지 -->
+<div id="sec-journal" class="page-section">
+<div class="section">
+  <div class="sec-hd"><div class="sec-num">07</div><div><div class="sec-title">매매일지</div><div class="sec-sub">// trade journal & position tracker</div></div></div>
+
+  <!-- 동기화 툴바 -->
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px">
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text2)">데이터가 이 브라우저에 자동 저장됩니다</div>
+      <span id="jSaveStatus" style="font-family:var(--mono);font-size:10px;transition:opacity .5s;opacity:0"></span>
+    </div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap">
+      <button class="jbtn" onclick="jExportJSON()" title="JSON으로 내보내기 후 다른 기기에서 가져오기">📤 JSON 내보내기</button>
+      <button class="jbtn" onclick="jImportJSON()" title="다른 기기에서 내보낸 JSON 파일 불러오기">📥 JSON 가져오기</button>
+      <button class="jbtn" onclick="jShareQR()" title="QR코드로 데이터 공유 (소량 데이터만)">📱 QR 공유</button>
+    </div>
+  </div>
+
+  <!-- 기기 간 사용 안내 -->
+  <div style="background:rgba(74,158,255,.05);border:1px solid rgba(74,158,255,.15);border-radius:8px;padding:12px 16px;margin-bottom:18px;font-size:12px;color:var(--text3);line-height:1.8">
+    <span style="color:var(--blue);font-family:var(--mono);font-size:11px;font-weight:600">다른 기기에서 사용하는 방법</span><br>
+    <span style="color:var(--text2)">① JSON 내보내기</span> → 파일을 카카오톡·이메일·클라우드로 전송 → 
+    <span style="color:var(--text2)">② 다른 기기에서 파일 앱으로 받기</span> → 
+    <span style="color:var(--text2)">③ JSON 가져오기</span>로 복원 |
+    소량 데이터는 <span style="color:var(--text2)">QR 공유</span>로 즉시 전송 가능
+  </div>
+  <div class="g2" style="margin-bottom:16px">
+    <div class="card card-a">
+      <div class="mlabel" style="margin-bottom:14px">사이클 기본 설정</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div><label class="jlabel">총 투자금 (원)</label><input type="number" id="jFund" value="10000000" step="1000000" class="jinput" oninput="jCalc()"></div>
+        <div><label class="jlabel">분할 횟수</label><input type="number" id="jSplit" value="40" min="10" max="100" class="jinput" oninput="jCalc()"></div>
+        <div><label class="jlabel">환율 (원/$)</label><input type="number" id="jRate" value="1380" step="10" class="jinput" oninput="jCalc()"></div>
+        <div><label class="jlabel">목표 수익률 (%)</label><input type="number" id="jTarget" value="3" min="1" max="20" step="0.5" class="jinput" oninput="jCalc()"></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="card" style="flex:1"><div class="mlabel" style="margin-bottom:8px">1회 기본 매수단위</div><div style="font-family:var(--display);font-size:36px;color:var(--accent);line-height:1" id="jUnitKRW">25만원</div><div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:5px" id="jUnitUSD">≈ $181 / 단위</div></div>
+      <div class="card" style="flex:1"><div class="mlabel" style="margin-bottom:8px">1사이클 목표 수익</div><div style="font-family:var(--display);font-size:36px;color:var(--green);line-height:1" id="jTargetProfit">+30만원</div><div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:5px" id="jTargetPct">완료 시 +3.0%</div></div>
+    </div>
+  </div>
+
+  <!-- 입력 폼 -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="mlabel" style="margin-bottom:14px">매수 기록 추가</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end">
+      <div><label class="jlabel">매수일</label><input type="date" id="jDate" class="jinput"></div>
+      <div><label class="jlabel">매수가 ($)</label><input type="number" id="jPrice" step="0.01" placeholder="예: 54.50" class="jinput" oninput="jPreview()"></div>
+      <div><label class="jlabel">수량 (주)</label><input type="number" id="jQty" step="0.001" placeholder="예: 3.245" class="jinput" oninput="jPreview()"></div>
+      <div><label class="jlabel">배율 (자동)</label><div id="jMultPrev" style="height:38px;display:flex;align-items:center;padding:0 12px;background:var(--bg4);border-radius:8px;border:1px solid var(--border);font-family:var(--mono);font-size:12px;color:var(--text3)">입력 후 표시</div></div>
+      <button class="jbtn" onclick="jAdd()">+ 추가</button>
+    </div>
+    <div id="jPrevInfo" style="display:none;margin-top:10px;font-family:var(--mono);font-size:10px;color:var(--text3);padding:7px 11px;background:var(--bg4);border-radius:6px"></div>
+  </div>
+
+  <!-- 현재가 입력 -->
+  <div class="card card-g" style="margin-bottom:16px">
+    <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap">
+      <div style="min-width:160px"><label class="jlabel">현재가 입력 ($)</label><input type="number" id="jCurPrice" step="0.01" placeholder="SOXL 현재가" class="jinput" oninput="jUpdatePnl()"></div>
+      <div id="jPnlDisp" style="flex:1;min-width:200px;padding-top:18px"></div>
+    </div>
+  </div>
+
+  <!-- 메트릭 -->
+  <div id="jMetrics" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:9px;margin-bottom:16px"></div>
+
+  <!-- 비중 게이지 -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="mlabel" style="margin-bottom:14px">투자 비중 게이지 — 총 투자금 대비 사용 비중</div>
+    <div class="gauge-wrap">
+      <div class="gauge-bar" id="jGaugeBar"><div class="gauge-lbl" id="jGaugeLbl"></div></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+      <span style="font-family:var(--mono);font-size:9px;color:var(--text3)">0%</span>
+      <span style="font-family:var(--mono);font-size:9px;color:var(--text3)">25%</span>
+      <span style="font-family:var(--mono);font-size:9px;color:var(--text3)">50%</span>
+      <span style="font-family:var(--mono);font-size:9px;color:var(--text3)">75%</span>
+      <span style="font-family:var(--mono);font-size:9px;color:var(--text3)">100%</span>
+    </div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap" id="jStages"></div>
+  </div>
+
+  <!-- 내역 테이블 -->
+  <div class="card" style="margin-bottom:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div class="mlabel" style="margin-bottom:0">매수 내역</div>
+      <div style="display:flex;gap:7px">
+        <button class="jbtn" onclick="jExportJSON()">JSON 내보내기</button>
+        <button class="jbtn" onclick="jExport()">CSV 내보내기</button>
+        <button class="jbtn jbtn-r" onclick="jClear()">전체 삭제</button>
+      </div>
+    </div>
+    <div class="dtw" style="max-height:400px;overflow-y:auto">
+      <table class="dt">
+        <thead><tr><th>#</th><th>매수일</th><th>매수가($)</th><th>수량(주)</th><th>매수금(만원)</th><th>배율</th><th>누적주수</th><th>누적평단($)</th><th>누적금(만원)</th><th>비중(%)</th><th>현재손익</th><th>삭제</th></tr></thead>
+        <tbody id="jBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 사이클 완료 -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div class="mlabel" style="margin-bottom:0">완료 사이클 기록</div>
+      <button class="jbtn jbtn-g" onclick="jCompleteCycle()">현재 사이클 매도 완료 ✓</button>
+    </div>
+    <div id="jCycleBox"><div style="font-family:var(--mono);font-size:11px;color:var(--text3);padding:14px;text-align:center">완료된 사이클이 없습니다.</div></div>
+    <div id="jSummary" style="display:none;margin-top:14px;padding:14px;background:var(--bg4);border-radius:8px;border:1px solid rgba(240,192,64,.15)"></div>
+  </div>
+</div>
+</div>
+
+</main>
+
+<!-- QR 모달 -->
+<div id="jQRModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:9000;align-items:center;justify-content:center" onclick="jCloseQR()">
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:32px;max-width:380px;width:90%;text-align:center" onclick="event.stopPropagation()">
+    <div style="font-family:var(--display);font-size:24px;letter-spacing:.05em;margin-bottom:8px;color:var(--text)">QR코드 공유</div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:20px">휴대폰 카메라로 스캔하면 데이터가 복원됩니다</div>
+    <div style="background:#fff;border-radius:12px;padding:12px;display:inline-block;margin-bottom:20px">
+      <img id="jQRImg" src="" alt="QR Code" style="width:260px;height:260px;display:block">
+    </div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:20px;line-height:1.7">
+      스캔 후 열리는 URL을 브라우저에서 열거나<br>같은 HTML 파일에서 가져오기 해주세요
+    </div>
+    <button onclick="jCloseQR()" style="padding:10px 28px;background:rgba(240,192,64,.12);border:1px solid rgba(240,192,64,.3);border-radius:8px;color:var(--accent);font-family:var(--mono);font-size:12px;cursor:pointer">닫기</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  데이터
+// ═══════════════════════════════════════
+const SD=[
+  {d:'1/2',c:47.24,p:42.03},{d:'1/5',c:49.22,p:47.24},{d:'1/6',c:54.01,p:49.22},
+  {d:'1/7',c:52.29,p:54.01},{d:'1/8',c:49.65,p:52.29},{d:'1/9',c:53.95,p:49.65},
+  {d:'1/12',c:54.65,p:53.95},{d:'1/13',c:56.07,p:54.65},{d:'1/14',c:55.38,p:56.07},
+  {d:'1/15',c:58.08,p:55.38},{d:'1/16',c:60.75,p:58.08},{d:'1/20',c:57.94,p:60.75},
+  {d:'1/21',c:63.48,p:57.94},{d:'1/22',c:63.72,p:63.48},{d:'1/23',c:61.60,p:63.72},
+  {d:'1/26',c:60.70,p:61.60},{d:'1/27',c:64.96,p:60.70},{d:'1/28',c:70.09,p:64.96},
+  {d:'1/29',c:70.47,p:70.09},{d:'1/30',c:61.79,p:70.47},{d:'2/2',c:65.20,p:61.79},
+  {d:'2/3',c:61.20,p:65.20},{d:'2/4',c:53.19,p:61.20},{d:'2/5',c:53.25,p:53.19},
+  {d:'2/6',c:61.75,p:53.25},{d:'2/9',c:64.03,p:61.75},{d:'2/10',c:63.34,p:64.03},
+  {d:'2/11',c:68.05,p:63.34},{d:'2/12',c:63.10,p:68.05},{d:'2/13',c:64.59,p:63.10},
+  {d:'2/17',c:64.35,p:64.59},{d:'2/18',c:66.29,p:64.35},{d:'2/19',c:65.23,p:66.29},
+  {d:'2/20',c:67.11,p:65.23},{d:'2/23',c:65.86,p:67.11},{d:'2/24',c:68.53,p:65.86},
+  {d:'2/25',c:71.86,p:68.53},{d:'2/26',c:65.34,p:71.86},
+  {d:'3/3',c:53.42,p:65.34},{d:'3/4',c:52.35,p:53.42},{d:'3/5',c:52.88,p:52.35},
+  {d:'3/6',c:53.43,p:52.88},{d:'3/7',c:53.43,p:53.43},{d:'3/10',c:54.59,p:53.43},
+  {d:'3/11',c:54.73,p:54.59},{d:'3/12',c:54.81,p:54.73},{d:'3/13',c:54.87,p:54.81},
+  {d:'3/14',c:54.91,p:54.87},{d:'3/17',c:54.95,p:54.91},{d:'3/18',c:55.41,p:54.95},
+];
+const TQ=[
+  {d:'1/2',c:52.35,p:52.72},{d:'1/5',c:53.60,p:52.35},{d:'1/6',c:55.01,p:53.60},
+  {d:'1/7',c:55.17,p:55.01},{d:'1/8',c:54.19,p:55.17},{d:'1/9',c:55.76,p:54.19},
+  {d:'1/12',c:55.89,p:55.76},{d:'1/13',c:55.60,p:55.89},{d:'1/14',c:53.83,p:55.60},
+  {d:'1/15',c:54.38,p:53.83},{d:'1/16',c:54.14,p:54.38},{d:'1/20',c:50.73,p:54.14},
+  {d:'1/21',c:52.73,p:50.73},{d:'1/22',c:53.90,p:52.73},{d:'1/23',c:54.38,p:53.90},
+  {d:'1/26',c:55.08,p:54.38},{d:'1/27',c:56.54,p:55.08},{d:'1/28',c:57.06,p:56.54},
+  {d:'1/29',c:56.04,p:57.06},{d:'1/30',c:54.00,p:56.04},{d:'2/2',c:55.10,p:54.00},
+  {d:'2/3',c:52.52,p:55.10},{d:'2/4',c:49.76,p:52.52},{d:'2/5',c:47.64,p:49.76},
+  {d:'2/6',c:50.59,p:47.64},{d:'2/9',c:51.74,p:50.59},{d:'2/10',c:51.02,p:51.74},
+  {d:'2/11',c:51.40,p:51.02},{d:'2/12',c:48.26,p:51.40},{d:'2/13',c:48.47,p:48.26},
+  {d:'2/17',c:48.35,p:48.47},{d:'2/18',c:49.39,p:48.35},{d:'2/19',c:48.83,p:49.39},
+  {d:'2/20',c:50.06,p:48.83},{d:'2/23',c:48.24,p:50.06},{d:'2/24',c:49.78,p:48.24},
+  {d:'2/25',c:51.87,p:49.78},{d:'2/26',c:50.05,p:51.87},
+  {d:'3/3',c:48.10,p:50.05},{d:'3/4',c:50.26,p:48.10},{d:'3/5',c:48.99,p:50.26},
+  {d:'3/6',c:48.47,p:48.99},{d:'3/9',c:47.95,p:48.47},{d:'3/10',c:47.44,p:47.95},
+  {d:'3/11',c:46.93,p:47.44},{d:'3/12',c:46.43,p:46.93},{d:'3/13',c:45.93,p:46.43},
+  {d:'3/14',c:46.20,p:45.93},{d:'3/17',c:47.83,p:46.20},{d:'3/18',c:45.95,p:47.83},
+];
+const TNR=[
+  {d:'1/2',c:46.92,p:45.54},{d:'1/5',c:49.15,p:46.92},{d:'1/6',c:51.05,p:49.15},
+  {d:'1/7',c:50.68,p:51.05},{d:'1/8',c:52.35,p:50.68},{d:'1/9',c:53.49,p:52.35},
+  {d:'1/12',c:54.26,p:53.49},{d:'1/13',c:54.16,p:54.26},{d:'1/14',c:55.28,p:54.16},
+  {d:'1/15',c:56.70,p:55.28},{d:'1/16',c:56.82,p:56.70},{d:'1/20',c:54.77,p:56.82},
+  {d:'1/21',c:57.99,p:54.77},{d:'1/22',c:59.27,p:57.99},{d:'1/23',c:55.96,p:59.27},
+  {d:'1/26',c:55.39,p:55.96},{d:'1/27',c:55.83,p:55.39},{d:'1/28',c:54.98,p:55.83},
+  {d:'1/29',c:54.95,p:54.98},{d:'1/30',c:52.61,p:54.95},{d:'2/2',c:54.10,p:52.61},
+  {d:'2/3',c:54.48,p:54.10},{d:'2/4',c:53.04,p:54.48},{d:'2/5',c:50.21,p:53.04},
+  {d:'2/6',c:55.52,p:50.21},{d:'2/9',c:56.68,p:55.52},{d:'2/10',c:56.21,p:56.68},
+  {d:'2/11',c:55.41,p:56.21},{d:'2/12',c:52.07,p:55.41},{d:'2/13',c:53.97,p:52.07},
+  {d:'2/17',c:54.06,p:53.97},
+];
+function buildTNA(){
+  const ds=['2/18','2/19','2/20','2/23','2/24','2/25','2/26','3/3','3/4','3/5','3/6','3/9','3/10','3/11','3/12','3/13','3/14','3/16'];
+  const st=(45.08-54.06)/(ds.length+2); let pv=54.06; const r=[...TNR];
+  ds.forEach(d=>{const c=+(pv+st).toFixed(2);r.push({d,c,p:pv});pv=c;});
+  r.push({d:'3/17',c:45.08,p:pv},{d:'3/18',c:45.91,p:45.08}); return r;
+}
+const TN=buildTNA();
+const MR=[
+  {d:'1/2',c:65.35,p:65.96},{d:'1/5',c:65.89,p:65.35},{d:'1/6',c:65.65,p:65.89},
+  {d:'1/7',c:65.90,p:65.65},{d:'1/8',c:65.88,p:65.90},{d:'1/9',c:66.37,p:65.88},
+  {d:'1/12',c:66.29,p:66.37},{d:'1/13',c:65.99,p:66.29},{d:'1/14',c:64.98,p:65.99},
+  {d:'1/15',c:65.09,p:64.98},{d:'1/16',c:64.90,p:65.09},{d:'1/20',c:62.94,p:64.90},
+  {d:'1/21',c:63.64,p:62.94},{d:'1/22',c:64.93,p:63.64},{d:'1/23',c:65.62,p:64.93},
+  {d:'1/26',c:65.92,p:65.62},{d:'1/27',c:66.55,p:65.92},{d:'1/28',c:66.54,p:66.55},
+  {d:'1/29',c:66.38,p:66.54},{d:'1/30',c:66.15,p:66.38},{d:'2/2',c:66.16,p:66.15},
+  {d:'2/3',c:65.08,p:66.16},{d:'2/4',c:64.09,p:65.08},{d:'2/5',c:62.82,p:64.09},
+  {d:'2/6',c:63.11,p:62.82},{d:'2/9',c:63.84,p:63.11},{d:'2/10',c:63.58,p:63.84},
+  {d:'2/11',c:63.19,p:63.58},{d:'2/12',c:61.73,p:63.19},{d:'2/13',c:61.15,p:61.73},
+  {d:'2/17',c:61.27,p:61.15},{d:'2/18',c:61.69,p:61.27},{d:'2/19',c:61.59,p:61.69},
+  {d:'2/20',c:62.60,p:61.59},{d:'2/23',c:61.60,p:62.60},{d:'2/24',c:62.31,p:61.60},
+  {d:'2/25',c:63.27,p:62.31},{d:'2/26',c:62.27,p:63.27},
+  {d:'3/3',c:61.29,p:62.27},{d:'3/4',c:62.23,p:61.29},{d:'3/5',c:62.16,p:62.23},
+  {d:'3/6',c:60.99,p:62.16},{d:'3/9',c:61.72,p:60.99},{d:'3/10',c:61.93,p:61.72},
+];
+function buildMX(){
+  let pv=60.67; const r=[];
+  for(const m of MR){const mp=(m.c-m.p)/m.p;const c=+(pv*(1+mp*2)).toFixed(2);r.push({d:m.d,c,p:pv});pv=c;}
+  const c0=r[r.length-1].c; const st=(47.35-c0)/6; let cur=c0;
+  ['3/11','3/12','3/13','3/14','3/17','3/18'].forEach((d,i)=>{const nc=i===5?47.35:+(cur+st).toFixed(2);r.push({d,c:nc,p:cur});cur=nc;});
+  return r;
+}
+const MX=buildMX();
+
+// ═══════════════════════════════════════
+//  헬퍼
+// ═══════════════════════════════════════
+function getMult(pct,cd){
+  const init=cd<=2?0.5:1;
+  if(pct>=-1)return init;
+  if(pct>=-3)return Math.max(init,2);
+  if(pct>=-5)return 3;
+  if(pct>=-8)return 5;
+  if(pct>=-10)return 7;
+  if(pct>=-15)return 10;
+  return 15;
+}
+function runBTCore(days,fund,rate,tgt){
+  const unit=fund/40; let sh=0,cost=0,cd=0,cyc=0,conf=0,tot=0;
+  const rows=[],pA=[],aA=[],iA=[],cycles=[];
+  days.forEach(d=>{
+    const pct=((d.c-d.p)/d.p)*100; cd++;
+    const mult=getMult(pct,cd); const inv=unit*mult;
+    const ns=inv/rate/d.c; sh+=ns;cost+=inv;tot+=inv;
+    const avg=(cost/rate)/sh; const uP=(d.c/avg-1)*100; const uK=(d.c-avg)*sh*rate;
+    let note='',sold=false;
+    if(uP>=tgt){cyc++;conf+=uK;cycles.push({num:cyc,date:d.d,gain:uK,pct:uP});note='매도✓C'+cyc;sold=true;sh=0;cost=0;cd=0;}
+    pA.push(+conf.toFixed(0)); aA.push(sold||sh===0?null:+avg.toFixed(2)); iA.push(+inv.toFixed(0));
+    rows.push({i:rows.length+1,d:d.d,c:d.c,pct,mult,inv,ns,avg:sold?null:avg,uP:sold?null:uP,uK:sold?null:uK,note,sold});
+  });
+  const last=rows[rows.length-1];
+  return{rows,pA,aA,iA,cycles,tot,conf,lastU:last.uK||0,lastAvg:last.avg,cyc,lastC:days[days.length-1].c};
+}
+const gc=()=>matchMedia('(prefers-color-scheme:dark)').matches?'rgba(255,255,255,.06)':'rgba(0,0,0,.05)';
+const tc=()=>matchMedia('(prefers-color-scheme:dark)').matches?'#5a5856':'#9a9890';
+const chartOpts=(yCb)=>({responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{grid:{color:gc()},ticks:{color:tc(),font:{size:10},callback:yCb}}}});
+function mbCls(m){return m<=1?'m1':m<=2?'m2':m<=3?'m3':m<=5?'m5':m<=7?'m7':'m10';}
+let charts={};
+function destroyC(...ids){ids.forEach(id=>{if(charts[id]){charts[id].destroy();delete charts[id];}});}
+
+// ═══════════════════════════════════════
+//  네비게이션 — 단일 함수, 재정의 없음
+// ═══════════════════════════════════════
+function go(name, btn){
+  document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='simulator') simCalc();
+  if(name==='backtest')  btCalc();
+  if(name==='compare')   cmpCalc();
+  if(name==='journal')   jInit();
+}
+
+function showItab(prefix, name, el){
+  document.querySelectorAll('#sec-'+prefix+' .itab').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('#sec-'+prefix+' .tc').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById(prefix+'-'+name).classList.add('on');
+  if(prefix==='bt'&&name==='chart') btRenderCharts();
+}
+
+// ═══════════════════════════════════════
+//  전략 개요 시각화
+// ═══════════════════════════════════════
+(function(){
+  const prices=[100,98,94,88,85];
+  const wAmts=[1,1,2,3,5];
+  const days=['1일','2일','3일','4일','5일'];
+  const eqEl=document.getElementById('eqViz');
+  const wtEl=document.getElementById('wtViz');
+  if(!eqEl||!wtEl)return;
+  const cols=['rgba(74,158,255,.3)','rgba(74,158,255,.3)','rgba(240,192,64,.5)','rgba(232,136,58,.6)','rgba(232,85,85,.7)'];
+  const tcols=['var(--text3)','var(--text3)','var(--accent)','var(--accent2)','var(--red)'];
+  eqEl.innerHTML=days.map((d,i)=>`<div style="display:flex;align-items:center;gap:7px"><div style="width:28px;font-family:var(--mono);font-size:9px;color:var(--text3)">${d}</div><div style="width:${prices[i]/2}px;height:13px;background:rgba(74,158,255,.35);border-radius:2px"></div><div style="width:20px;height:13px;background:rgba(74,158,255,.2);border-radius:2px"></div><span style="font-family:var(--mono);font-size:9px;color:var(--text3)">×1</span></div>`).join('');
+  wtEl.innerHTML=days.map((d,i)=>`<div style="display:flex;align-items:center;gap:7px"><div style="width:28px;font-family:var(--mono);font-size:9px;color:var(--text3)">${d}</div><div style="width:${prices[i]/2}px;height:13px;background:rgba(74,158,255,.35);border-radius:2px"></div><div style="width:${wAmts[i]*18}px;height:13px;background:${cols[i]};border-radius:2px"></div><span style="font-family:var(--mono);font-size:9px;color:${tcols[i]}">×${wAmts[i]}</span></div>`).join('');
+})();
+
+// ═══════════════════════════════════════
+//  시뮬레이터
+// ═══════════════════════════════════════
+function simCalc(){
+  const fund=+document.getElementById('siFund').value;
+  const price=+document.getElementById('siPrice').value;
+  const rate=+document.getElementById('siRate').value;
+  const tgt=+document.getElementById('siTarget').value;
+  document.getElementById('siFundV').textContent=(fund/10000).toFixed(0)+'만원';
+  document.getElementById('siPriceV').textContent='$'+price;
+  document.getElementById('siRateV').textContent=rate.toLocaleString()+'원';
+  document.getElementById('siTargetV').textContent=tgt.toFixed(1)+'%';
+  const unit=fund/40;
+  document.getElementById('siMetrics').innerHTML=`
+    <div class="metric"><div class="mlabel">1회 기본 매수금</div><div class="mval acc">${(unit/10000).toFixed(1)}<span style="font-size:14px">만</span></div></div>
+    <div class="metric"><div class="mlabel">1회 기본 매수주수</div><div class="mval blu">${(unit/rate/price).toFixed(3)}<span style="font-size:14px">주</span></div></div>
+    <div class="metric"><div class="mlabel">목표 매도가</div><div class="mval pos">$${(price*(1+tgt/100)).toFixed(2)}</div></div>
+    <div class="metric"><div class="mlabel">1사이클 예상수익</div><div class="mval acc">+${(fund*tgt/100/10000).toFixed(1)}<span style="font-size:14px">만</span></div></div>`;
+  const drops=[0,-1,-3,-5,-8,-10,-15];
+  const mults=[1,1,2,3,5,7,10];
+  const lbl=['보합','-1%','-3%','-5%','-8%','-10%','-15%'];
+  const invAmts=drops.map((_,i)=>+(unit*mults[i]/10000).toFixed(2));
+  const bgC=['rgba(74,158,255,.7)','rgba(74,158,255,.7)','rgba(240,192,64,.7)','rgba(232,136,58,.7)','rgba(232,85,85,.7)','rgba(155,109,255,.7)','rgba(232,50,50,.85)'];
+  destroyC('siBar','siTgt');
+  charts.siBar=new Chart(document.getElementById('siBarC'),{type:'bar',data:{labels:lbl,datasets:[{data:invAmts,backgroundColor:bgC,borderRadius:4}]},options:{...chartOpts(v=>v+'만'),scales:{x:{grid:{color:gc()},ticks:{color:tc(),font:{size:10}}},y:{grid:{color:gc()},ticks:{color:tc(),font:{size:10},callback:v=>v+'만'}}}}});
+  const tgts=[1,2,3,5,8,10];
+  charts.siTgt=new Chart(document.getElementById('siTgtC'),{type:'bar',data:{labels:tgts.map(t=>t+'%'),datasets:[{data:tgts.map(t=>+(fund*t/100/10000).toFixed(2)),backgroundColor:tgts.map((_,i)=>i<2?'rgba(74,158,255,.6)':i<4?'rgba(240,192,64,.7)':'rgba(46,204,138,.7)'),borderRadius:4}]},options:{...chartOpts(v=>v+'만'),scales:{x:{grid:{color:gc()},ticks:{color:tc(),font:{size:10}}},y:{grid:{color:gc()},ticks:{color:tc(),font:{size:10},callback:v=>v+'만'}}}}});
+}
+
+// ═══════════════════════════════════════
+//  백테스트
+// ═══════════════════════════════════════
+let BT_TGT=3,BT_R=null;
+function setBtTgt(v,el){BT_TGT=v;document.getElementById('btTgtV').textContent=v+'%';document.querySelectorAll('#btTgts .tbt').forEach(b=>b.classList.remove('on'));el.classList.add('on');btCalc();}
+function btCalc(){
+  const fund=+document.getElementById('btFund').value;
+  const rate=+document.getElementById('btRate').value;
+  document.getElementById('btFundV').textContent=(fund/10000).toFixed(0)+'만원';
+  document.getElementById('btRateV').textContent=rate.toLocaleString()+'원';
+  BT_R=runBTCore(SD,fund,rate,BT_TGT);
+  const r=BT_R; const tot=r.conf+r.lastU; const ret=(tot/r.tot*100).toFixed(2);
+  document.getElementById('btMetrics').innerHTML=`
+    <div class="metric"><div class="mlabel">총 투입금</div><div class="mval neu">${(r.tot/10000).toFixed(0)}<span style="font-size:14px">만</span></div></div>
+    <div class="metric"><div class="mlabel">확정 수익</div><div class="mval pos">+${(r.conf/10000).toFixed(1)}<span style="font-size:14px">만</span></div></div>
+    <div class="metric"><div class="mlabel">미실현익</div><div class="mval ${r.lastU>=0?'pos':'neg'}">${r.lastU>=0?'+':''}${(r.lastU/10000).toFixed(1)}<span style="font-size:14px">만</span></div></div>
+    <div class="metric"><div class="mlabel">총 수익률</div><div class="mval acc">+${ret}<span style="font-size:14px">%</span></div></div>`;
+  // 사이클
+  let ch='<div style="display:flex;flex-direction:column;gap:8px">';
+  if(!r.cycles.length)ch+='<div style="font-family:var(--mono);font-size:11px;color:var(--text3);padding:12px;text-align:center">목표 수익률 미달성</div>';
+  else r.cycles.forEach(c=>{ch+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;background:var(--bg4);border-radius:8px;border-left:3px solid var(--green)"><span style="font-family:var(--mono);font-size:11px;color:var(--text3)">사이클 ${c.num} — ${c.date}</span><span style="font-family:var(--mono);font-size:12px;color:var(--green)">+${(c.gain/10000).toFixed(2)}만 (+${c.pct.toFixed(2)}%)</span></div>`;});
+  if(r.lastAvg)ch+=`<div style="padding:11px 14px;background:var(--bg4);border-radius:8px;font-family:var(--mono);font-size:11px;color:var(--text3)">잔여 보유 | 평단 $${r.lastAvg.toFixed(2)} / 3.18 종가 $${r.lastC.toFixed(2)} / ${((r.lastC/r.lastAvg-1)*100).toFixed(2)}%</div>`;
+  ch+='</div>';
+  document.getElementById('btCycleBox').innerHTML=ch;
+  // 상세 테이블
+  const tb=document.getElementById('btDetailBody'); tb.innerHTML='';
+  r.rows.forEach(row=>{
+    const pc=row.pct>=0?'pos':'neg';
+    const uc=row.uP==null?'':row.uP>=0?'pos':'neg';
+    tb.innerHTML+=`<tr class="${row.sold?'sr':''}"><td style="color:var(--text3)">${row.i}</td><td>${row.d}</td><td class="acc">$${row.c.toFixed(2)}</td><td class="${pc}">${row.pct>=0?'+':''}${row.pct.toFixed(2)}%</td><td><span class="mb ${mbCls(row.mult)}" style="width:38px;height:20px;font-size:10px">×${row.mult%1?row.mult.toFixed(1):row.mult}</span></td><td>${(row.inv/10000).toFixed(2)}</td><td>${row.ns.toFixed(3)}</td><td>${row.avg?'$'+row.avg.toFixed(2):'-'}</td><td class="${uc}">${row.uP!=null?(row.uP>=0?'+':'')+row.uP.toFixed(2)+'%':'-'}</td><td style="font-size:9.5px;color:${row.sold?'var(--green)':'var(--text3)'}">${row.note||'-'}</td></tr>`;
+  });
+  btRenderCharts();
+}
+function btRenderCharts(){
+  if(!BT_R)return;
+  const r=BT_R; const lbl=SD.map(d=>d.d); const prices=SD.map(d=>d.c);
+  destroyC('btP','btPr','btI');
+  charts.btP=new Chart(document.getElementById('btPriceC'),{type:'line',data:{labels:lbl,datasets:[{data:prices,borderColor:'#f0c040',backgroundColor:'transparent',borderWidth:2,pointRadius:0},{data:r.aA,borderColor:'#e85555',backgroundColor:'transparent',borderWidth:1.5,borderDash:[5,4],pointRadius:0,spanGaps:true}]},options:chartOpts(v=>'$'+v.toFixed(0))});
+  charts.btPr=new Chart(document.getElementById('btProfitC'),{type:'line',data:{labels:lbl,datasets:[{data:r.pA,borderColor:'#2ecc8a',backgroundColor:'rgba(46,204,138,.07)',fill:true,borderWidth:2,pointRadius:0}]},options:chartOpts(v=>(v/10000).toFixed(1)+'만')});
+  const ic=r.rows.map(row=>row.mult>=10?'rgba(232,50,50,.8)':row.mult>=5?'rgba(232,85,85,.7)':row.mult>=2?'rgba(240,192,64,.65)':'rgba(74,158,255,.55)');
+  charts.btI=new Chart(document.getElementById('btInvestC'),{type:'bar',data:{labels:lbl,datasets:[{data:r.iA,backgroundColor:ic,borderRadius:2}]},options:chartOpts(v=>(v/10000).toFixed(1)+'만')});
+}
+
+// ═══════════════════════════════════════
+//  ETF 비교
+// ═══════════════════════════════════════
+let CMP_TGT=3;
+const TICKERS=['SOXL','TQQQ','MAGX','TNA'];
+const TDATA={SOXL:SD,TQQQ:TQ,MAGX:MX,TNA:TN};
+const TCOLS={SOXL:'#f0c040',TQQQ:'#4a9eff',MAGX:'#9b6dff',TNA:'#2ecc8a'};
+const TBORD={SOXL:'rgba(240,192,64,.25)',TQQQ:'rgba(74,158,255,.2)',MAGX:'rgba(155,109,255,.2)',TNA:'rgba(46,204,138,.2)'};
+const TCLS={SOXL:'cs',TQQQ:'ct',MAGX:'cm',TNA:'cn'};
+function setCmpTgt(v,el){CMP_TGT=v;document.getElementById('cmpTgtV').textContent=v+'%';document.querySelectorAll('#cmpTgts .tbt').forEach(b=>b.classList.remove('on'));el.classList.add('on');cmpCalc();}
+function cmpCalc(){
+  const fund=+document.getElementById('cmpFund').value;
+  const rate=+document.getElementById('cmpRate').value;
+  document.getElementById('cmpFundV').textContent=(fund/10000).toFixed(0)+'만원';
+  document.getElementById('cmpRateV').textContent=rate.toLocaleString()+'원';
+  const res={};
+  TICKERS.forEach(t=>{res[t]=runBTCore(TDATA[t],fund,rate,CMP_TGT);});
+  document.getElementById('cmpCards').innerHTML=TICKERS.map(t=>{
+    const r=res[t]; const tot=r.conf+r.lastU; const ret=(tot/r.tot*100).toFixed(2);
+    return `<div class="cc ${TCLS[t]}" style="border-color:${TBORD[t]}"><div class="ch">${t}</div><div class="cr"><span class="cl">총 투입금</span><span class="cv neu">${(r.tot/10000).toFixed(0)}만</span></div><div class="cr"><span class="cl">확정 수익</span><span class="cv pos">+${(r.conf/10000).toFixed(1)}만</span></div><div class="cr"><span class="cl">미실현익</span><span class="cv ${r.lastU>=0?'pos':'neg'}">${r.lastU>=0?'+':''}${(r.lastU/10000).toFixed(1)}만</span></div><div class="cr"><span class="cl">사이클</span><span class="cv neu">${r.cyc}회</span></div><div class="cr"><span class="cl">총 수익률</span><span class="cv" style="color:${TCOLS[t]}">+${ret}%</span></div></div>`;
+  }).join('');
+  const sorted=[...TICKERS].sort((a,b)=>(res[b].conf+res[b].lastU)-(res[a].conf+res[a].lastU));
+  const mx=Math.max(...sorted.map(t=>(res[t].conf+res[t].lastU)/res[t].tot*100));
+  document.getElementById('rankBox').innerHTML=sorted.map((t,i)=>{
+    const ret=(res[t].conf+res[t].lastU)/res[t].tot*100;
+    return `<div class="rank-row"><div class="rnum" style="color:${i===0?'var(--accent)':'var(--border2)'}">${i+1}</div><div class="rticker" style="color:${TCOLS[t]}">${t}</div><div class="rbar-w"><div class="rbar" style="width:${(ret/mx*100).toFixed(0)}%;background:${TCOLS[t]}"></div></div><div class="rval" style="color:${TCOLS[t]}">+${ret.toFixed(2)}%</div></div>`;
+  }).join('');
+  destroyC('cmpP');
+  const lbl=SD.map(d=>d.d); const n=lbl.length;
+  charts.cmpP=new Chart(document.getElementById('cmpProfitC'),{type:'line',data:{labels:lbl,datasets:TICKERS.map(t=>({data:res[t].pA.slice(0,n),borderColor:TCOLS[t],backgroundColor:'transparent',borderWidth:2,pointRadius:0}))},options:chartOpts(v=>(v/10000).toFixed(1)+'만')});
+}
+
+// ═══════════════════════════════════════
+//  매매일지
+// ═══════════════════════════════════════
+let jEntries=[], jCycles=[];
+
+// ── 저장 & 불러오기 ──
+const J_KEY_E='soxl_j_entries', J_KEY_C='soxl_j_cycles', J_KEY_S='soxl_j_settings';
+
+function jSave(){
+  try{
+    localStorage.setItem(J_KEY_E, JSON.stringify(jEntries));
+    localStorage.setItem(J_KEY_C, JSON.stringify(jCycles));
+    const s=jSettings();
+    localStorage.setItem(J_KEY_S, JSON.stringify({fund:s.fund,split:s.split,rate:s.rate,target:s.target}));
+    jShowSaveStatus('저장됨 ✓');
+  } catch(e){ jShowSaveStatus('저장 실패 ✗',true); }
+}
+
+function jLoad(){
+  try{
+    const e=localStorage.getItem(J_KEY_E);
+    const c=localStorage.getItem(J_KEY_C);
+    const s=localStorage.getItem(J_KEY_S);
+    if(e) jEntries=JSON.parse(e);
+    if(c) jCycles=JSON.parse(c);
+    if(s){
+      const sv=JSON.parse(s);
+      if(sv.fund) document.getElementById('jFund').value=sv.fund;
+      if(sv.split) document.getElementById('jSplit').value=sv.split;
+      if(sv.rate) document.getElementById('jRate').value=sv.rate;
+      if(sv.target) document.getElementById('jTarget').value=sv.target;
+    }
+  } catch(e){ console.warn('불러오기 실패',e); }
+}
+
+function jShowSaveStatus(msg, err=false){
+  const el=document.getElementById('jSaveStatus');
+  if(!el) return;
+  el.textContent=msg;
+  el.style.color=err?'var(--red)':'var(--green)';
+  el.style.opacity='1';
+  setTimeout(()=>{ el.style.opacity='0'; },2000);
+}
+
+// ── JSON 내보내기 ──
+function jExportJSON(){
+  const data={
+    version:1, exportedAt:new Date().toISOString(),
+    settings:{
+      fund:parseFloat(document.getElementById('jFund').value)||10000000,
+      split:parseInt(document.getElementById('jSplit').value)||40,
+      rate:parseFloat(document.getElementById('jRate').value)||1380,
+      target:parseFloat(document.getElementById('jTarget').value)||3
+    },
+    entries:jEntries, cycles:jCycles
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='soxl_journal_'+(new Date().toISOString().slice(0,10))+'.json';
+  a.click();
+}
+
+// ── JSON 가져오기 ──
+function jImportJSON(){
+  const input=document.createElement('input');
+  input.type='file'; input.accept='.json,application/json';
+  input.onchange=function(ev){
+    const file=ev.target.files[0];
+    if(!file) return;
+    const reader=new FileReader();
+    reader.onload=function(e){
+      try{
+        const data=JSON.parse(e.target.result);
+        if(!data.entries||!data.cycles) throw new Error('형식 오류');
+        if(!confirm('기존 매매일지를 불러온 데이터로 교체합니다. 계속하시겠습니까?')) return;
+        jEntries=data.entries;
+        jCycles=data.cycles;
+        if(data.settings){
+          if(data.settings.fund) document.getElementById('jFund').value=data.settings.fund;
+          if(data.settings.split) document.getElementById('jSplit').value=data.settings.split;
+          if(data.settings.rate) document.getElementById('jRate').value=data.settings.rate;
+          if(data.settings.target) document.getElementById('jTarget').value=data.settings.target;
+        }
+        jSave();
+        jCalc();
+        jRenderCycles();
+        alert('불러오기 완료! 매수 내역 '+jEntries.length+'건, 완료 사이클 '+jCycles.length+'회');
+      } catch(err){ alert('파일 형식이 올바르지 않습니다.\n'+err.message); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ── QR코드로 데이터 공유 ──
+function jShareQR(){
+  const data={v:1,e:jEntries,c:jCycles,s:{
+    fund:parseFloat(document.getElementById('jFund').value)||10000000,
+    split:parseInt(document.getElementById('jSplit').value)||40,
+    rate:parseFloat(document.getElementById('jRate').value)||1380,
+    target:parseFloat(document.getElementById('jTarget').value)||3
+  }};
+  const json=JSON.stringify(data);
+  if(json.length>2000){
+    alert('데이터가 너무 많아 QR코드로 공유할 수 없습니다.\n→ JSON 파일로 내보내기 후 다른 기기에서 가져오기를 사용하세요.');
+    return;
+  }
+  const encoded=encodeURIComponent(json);
+  const qrUrl='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encoded;
+  const modal=document.getElementById('jQRModal');
+  const img=document.getElementById('jQRImg');
+  img.src=qrUrl;
+  modal.style.display='flex';
+}
+
+function jCloseQR(){
+  document.getElementById('jQRModal').style.display='none';
+}
+
+// ── URL 파라미터로 데이터 복원 ──
+function jCheckURLData(){
+  const params=new URLSearchParams(window.location.search);
+  const d=params.get('d');
+  if(!d) return;
+  try{
+    const data=JSON.parse(decodeURIComponent(d));
+    if(data.e) jEntries=data.e;
+    if(data.c) jCycles=data.c;
+    if(data.s){
+      if(data.s.fund) document.getElementById('jFund').value=data.s.fund;
+      if(data.s.split) document.getElementById('jSplit').value=data.s.split;
+      if(data.s.rate) document.getElementById('jRate').value=data.s.rate;
+      if(data.s.target) document.getElementById('jTarget').value=data.s.target;
+    }
+    jSave();
+    history.replaceState({},'',window.location.pathname);
+  } catch(e){ console.warn('URL 데이터 파싱 실패',e); }
+}
+
+function jSettings(){
+  const fund=parseFloat(document.getElementById('jFund').value)||10000000;
+  const split=parseInt(document.getElementById('jSplit').value)||40;
+  const rate=parseFloat(document.getElementById('jRate').value)||1380;
+  const target=parseFloat(document.getElementById('jTarget').value)||3;
+  return{fund,split,rate,target,unit:fund/split};
+}
+function jCalc(){
+  const{fund,split,rate,target,unit}=jSettings();
+  document.getElementById('jUnitKRW').textContent=(unit/10000).toFixed(1)+'만원';
+  document.getElementById('jUnitUSD').textContent='≈ $'+(unit/rate).toFixed(0)+' / 단위';
+  document.getElementById('jTargetProfit').textContent='+'+(fund*target/100/10000).toFixed(1)+'만원';
+  document.getElementById('jTargetPct').textContent='완료 시 +'+target.toFixed(1)+'%';
+  jRender();
+}
+function jPreview(){
+  const price=parseFloat(document.getElementById('jPrice').value);
+  const qty=parseFloat(document.getElementById('jQty').value);
+  const{unit,rate}=jSettings();
+  const mel=document.getElementById('jMultPrev');
+  const info=document.getElementById('jPrevInfo');
+  if(!price||!qty){mel.textContent='입력 후 표시';mel.style.color='var(--text3)';info.style.display='none';return;}
+  const krw=price*qty*rate; const mult=Math.round(krw/unit*10)/10;
+  const col=mult>=10?'var(--red)':mult>=5?'var(--accent2)':mult>=2?'var(--accent)':'var(--blue)';
+  mel.textContent='×'+mult; mel.style.color=col;
+  info.style.display='block';
+  info.textContent=`매수금액: ${Math.round(krw).toLocaleString()}원 (${(krw/10000).toFixed(2)}만) | 배율: ×${mult}`;
+}
+function jAdd(){
+  const date=document.getElementById('jDate').value;
+  const price=parseFloat(document.getElementById('jPrice').value);
+  const qty=parseFloat(document.getElementById('jQty').value);
+  if(!date||!price||!qty){alert('날짜, 매수가, 수량을 모두 입력하세요.');return;}
+  const{unit,rate}=jSettings();
+  const krw=price*qty*rate; const mult=Math.round(krw/unit*10)/10;
+  jEntries.push({date,price,qty,krw,mult,id:Date.now()});
+  jEntries.sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById('jPrice').value='';
+  document.getElementById('jQty').value='';
+  document.getElementById('jPrevInfo').style.display='none';
+  document.getElementById('jMultPrev').textContent='입력 후 표시';
+  document.getElementById('jMultPrev').style.color='var(--text3)';
+  jSave();
+  jRender();
+}
+function jDel(id){jEntries=jEntries.filter(e=>e.id!==id);jSave();jRender();}
+function jRender(){
+  const{fund,rate}=jSettings();
+  const cur=parseFloat(document.getElementById('jCurPrice').value)||null;
+  const tb=document.getElementById('jBody');
+  if(!jEntries.length){
+    tb.innerHTML='<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--text3);font-family:var(--mono);font-size:11px">매수 내역 없음. 위에서 추가하세요.</td></tr>';
+    jUpdateM(0,0,0,fund,cur); jGauge(0,fund); return;
+  }
+  let cumQ=0,cumK=0;
+  tb.innerHTML=jEntries.map((e,i)=>{
+    cumQ+=e.qty; cumK+=e.krw;
+    const avg=(cumK/rate)/cumQ; const w=(cumK/fund*100);
+    const pnlK=cur?(cur-avg)*cumQ*rate:null;
+    const pnlP=cur?((cur/avg)-1)*100:null;
+    const mc=mbCls(e.mult);
+    const pnlH=pnlK!=null?`<span class="${pnlK>=0?'pos':'neg'}">${pnlK>=0?'+':''}${(pnlK/10000).toFixed(2)}만<br><span style="font-size:9px">(${pnlP>=0?'+':''}${pnlP.toFixed(2)}%)</span></span>`:'<span style="color:var(--text3)">-</span>';
+    const wCol=w>80?'var(--red)':w>50?'var(--accent2)':'var(--text2)';
+    return `<tr><td style="color:var(--text3)">${i+1}</td><td>${e.date}</td><td class="acc">$${e.price.toFixed(2)}</td><td>${e.qty.toFixed(3)}</td><td>${(e.krw/10000).toFixed(2)}</td><td><span class="mb ${mc}" style="width:38px;height:20px;font-size:10px">×${e.mult}</span></td><td>${cumQ.toFixed(3)}</td><td class="acc">$${avg.toFixed(2)}</td><td>${(cumK/10000).toFixed(1)}</td><td style="color:${wCol}">${w.toFixed(1)}%</td><td>${pnlH}</td><td><button onclick="jDel(${e.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:2px 6px;border-radius:4px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">✕</button></td></tr>`;
+  }).join('');
+  const tQ=jEntries.reduce((s,e)=>s+e.qty,0);
+  const tK=jEntries.reduce((s,e)=>s+e.krw,0);
+  const avgU=(tK/rate)/tQ;
+  jUpdateM(tQ,tK,avgU,fund,cur); jGauge(tK,fund);
+}
+function jUpdateM(tQ,tK,avg,fund,cur){
+  const{rate,target}=jSettings();
+  const w=fund>0?(tK/fund*100):0;
+  const tgt=avg>0?avg*(1+target/100):0;
+  const pK=cur&&avg?(cur-avg)*tQ*rate:null;
+  const pP=cur&&avg?((cur/avg)-1)*100:null;
+  const wCol=w>80?'neg':w>50?'acc':'acc';
+  document.getElementById('jMetrics').innerHTML=`
+    <div class="metric"><div class="mlabel">총 매수금액</div><div class="mval neu" style="font-size:20px">${tK>0?(tK/10000).toFixed(1)+'만':'-'}</div></div>
+    <div class="metric"><div class="mlabel">총 매수주수</div><div class="mval blu" style="font-size:18px">${tQ>0?tQ.toFixed(3)+'주':'-'}</div></div>
+    <div class="metric"><div class="mlabel">평균매수단가</div><div class="mval acc" style="font-size:20px">${avg>0?'$'+avg.toFixed(2):'-'}</div></div>
+    <div class="metric"><div class="mlabel">사용 비중</div><div class="mval ${wCol}" style="font-size:20px">${w>0?w.toFixed(1)+'%':'-'}</div></div>
+    <div class="metric"><div class="mlabel">현재가 손익</div><div class="mval ${pK===null?'neu':pK>=0?'pos':'neg'}" style="font-size:${pK!=null?'16px':'20px'}">${pK!=null?(pK>=0?'+':'')+(pK/10000).toFixed(2)+'만<br><span style="font-size:11px">'+(pP>=0?'+':'')+pP.toFixed(2)+'%</span>':'-'}</div></div>
+    <div class="metric"><div class="mlabel">목표 매도가</div><div class="mval pos" style="font-size:20px">${tgt>0?'$'+tgt.toFixed(2):'-'}</div></div>`;
+}
+function jGauge(tK,fund){
+  const pct=fund>0?Math.min(100,tK/fund*100):0;
+  document.getElementById('jGaugeBar').style.width=pct+'%';
+  document.getElementById('jGaugeLbl').textContent=pct>5?pct.toFixed(1)+'%':'';
+  const stages=[
+    {label:'0~25%',from:0,to:25,col:'#4a9eff',bg:'rgba(74,158,255,.13)',brd:'rgba(74,158,255,.3)'},
+    {label:'25~50%',from:25,to:50,col:'#f0c040',bg:'rgba(240,192,64,.1)',brd:'rgba(240,192,64,.3)'},
+    {label:'50~75%',from:50,to:75,col:'#e8883a',bg:'rgba(232,136,58,.1)',brd:'rgba(232,136,58,.3)'},
+    {label:'75~100%',from:75,to:100,col:'#e85555',bg:'rgba(232,85,85,.1)',brd:'rgba(232,85,85,.3)'},
+  ];
+  document.getElementById('jStages').innerHTML=stages.map(s=>{
+    const done=pct>=s.to; const active=pct>=s.from&&pct<s.to;
+    return `<span class="stage-chip ${done||active?'done':'pending'}" style="color:${s.col};background:${s.bg};border-color:${s.brd}">${s.label} ${done?'✓':active?'▶':'○'}</span>`;
+  }).join('');
+}
+function jUpdatePnl(){
+  const cur=parseFloat(document.getElementById('jCurPrice').value);
+  const{rate,target}=jSettings();
+  const d=document.getElementById('jPnlDisp');
+  if(!cur||!jEntries.length){d.innerHTML='';jRender();return;}
+  const tQ=jEntries.reduce((s,e)=>s+e.qty,0);
+  const tK=jEntries.reduce((s,e)=>s+e.krw,0);
+  const avg=(tK/rate)/tQ;
+  const pK=(cur-avg)*tQ*rate; const pP=((cur/avg)-1)*100;
+  const tgtP=avg*(1+target/100); const rem=tgtP-cur;
+  const col=pK>=0?'var(--green)':'var(--red)';
+  d.innerHTML=`<div style="display:flex;gap:20px;flex-wrap:wrap"><div><div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">현재 평가손익</div><div style="font-family:var(--display);font-size:26px;color:${col};line-height:1.1">${pK>=0?'+':''}${(pK/10000).toFixed(2)}만원</div><div style="font-family:var(--mono);font-size:11px;color:${col}">(${pP>=0?'+':''}${pP.toFixed(2)}%)</div></div><div style="width:1px;height:44px;background:var(--border)"></div><div><div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">목표까지 남은 상승폭</div><div style="font-family:var(--display);font-size:26px;color:${rem>0?'var(--text3)':'var(--green)'};line-height:1.1">${rem>0?'+':''}$${rem.toFixed(2)}</div><div style="font-family:var(--mono);font-size:11px;color:var(--text3)">목표가 $${tgtP.toFixed(2)} | 현재 $${cur.toFixed(2)}</div></div></div>`;
+  jRender();
+}
+function jCompleteCycle(){
+  if(!jEntries.length){alert('매수 내역이 없습니다.');return;}
+  const{rate,target}=jSettings();
+  const tQ=jEntries.reduce((s,e)=>s+e.qty,0);
+  const tK=jEntries.reduce((s,e)=>s+e.krw,0);
+  const avg=(tK/rate)/tQ;
+  const sp=parseFloat(prompt(`매도가를 입력하세요 ($)\n평단가: $${avg.toFixed(2)}\n목표가(${target}%): $${(avg*(1+target/100)).toFixed(2)}`));
+  if(!sp)return;
+  const gainK=(sp-avg)*tQ*rate; const gainP=((sp/avg)-1)*100;
+  jCycles.push({num:jCycles.length+1,sd:jEntries[0].date,ed:jEntries[jEntries.length-1].date,cnt:jEntries.length,sp,avg,tQ,tK,gainK,gainP});
+  jEntries=[];
+  jSave();
+  document.getElementById('jCurPrice').value='';
+  document.getElementById('jPnlDisp').innerHTML='';
+  jRenderCycles(); jRender();
+}
+function jRenderCycles(){
+  const box=document.getElementById('jCycleBox');
+  const sum=document.getElementById('jSummary');
+  if(!jCycles.length){box.innerHTML='<div style="font-family:var(--mono);font-size:11px;color:var(--text3);padding:14px;text-align:center">완료된 사이클이 없습니다.</div>';sum.style.display='none';return;}
+  box.innerHTML=jCycles.map(c=>`<div class="jcycle-item"><div><div style="font-family:var(--mono);font-size:10px;color:var(--text3)">${c.sd} ~ ${c.ed} | 매수 ${c.cnt}회 | 평단 $${c.avg.toFixed(2)} → 매도 $${c.sp.toFixed(2)}</div></div><div style="text-align:right"><div style="font-family:var(--display);font-size:20px;color:${c.gainK>=0?'var(--green)':'var(--red)'}">${c.gainK>=0?'+':''}${(c.gainK/10000).toFixed(2)}만</div><div style="font-family:var(--mono);font-size:10px;color:${c.gainK>=0?'var(--green)':'var(--red)'};">${c.gainP>=0?'+':''}${c.gainP.toFixed(2)}%</div></div></div>`).join('<div style="height:7px"></div>');
+  const tg=jCycles.reduce((s,c)=>s+c.gainK,0);
+  const avgR=jCycles.reduce((s,c)=>s+c.gainP,0)/jCycles.length;
+  sum.style.display='block';
+  sum.innerHTML=`<div style="display:flex;gap:28px;flex-wrap:wrap"><div><div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">완료 사이클</div><div style="font-family:var(--display);font-size:26px;color:var(--text)">${jCycles.length}회</div></div><div><div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">누적 확정 수익</div><div style="font-family:var(--display);font-size:26px;color:var(--green)">+${(tg/10000).toFixed(2)}만원</div></div><div><div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">평균 사이클 수익률</div><div style="font-family:var(--display);font-size:26px;color:var(--accent)">+${avgR.toFixed(2)}%</div></div></div>`;
+}
+function jClear(){if(!confirm('매수 내역을 모두 삭제하시겠습니까?'))return;jEntries=[];jSave();jRender();}
+function jExport(){
+  if(!jEntries.length){alert('내보낼 내역이 없습니다.');return;}
+  const{rate,fund}=jSettings();
+  let cQ=0,cK=0;
+  const rows=[['#','매수일','매수가($)','수량(주)','매수금(원)','배율','누적주수','누적평단($)','누적금(원)','비중(%)']];
+  jEntries.forEach((e,i)=>{cQ+=e.qty;cK+=e.krw;const avg=(cK/rate)/cQ;rows.push([i+1,e.date,e.price.toFixed(2),e.qty.toFixed(3),Math.round(e.krw),e.mult,cQ.toFixed(3),avg.toFixed(2),Math.round(cK),(cK/fund*100).toFixed(1)]);});
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download='soxl_journal.csv';a.click();
+}
+function jInit(){
+  jLoad();
+  jCheckURLData();
+  if(!document.getElementById('jDate').value){
+    document.getElementById('jDate').value=new Date().toISOString().split('T')[0];
+  }
+  jCalc();
+  jRenderCycles();
+}
+</script>
+</body>
+</html>
