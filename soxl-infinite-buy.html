@@ -6,6 +6,8 @@
 <title>SOXL 무한매수법 — 라오어 전략 시스템</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
 :root{
   --bg:#0a0a0f;--bg2:#111118;--bg3:#18181f;--bg4:#1e1e28;
@@ -302,7 +304,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
     <div class="ctrl-grid">
       <div class="ctrl-row"><div class="clabel">총 투자금</div><input type="range" min="5000000" max="100000000" step="1000000" value="10000000" id="siFund" oninput="simCalc()"><div class="cval" id="siFundV">1,000만원</div></div>
       <div class="ctrl-row"><div class="clabel">SOXL 현재가 ($)</div><input type="range" min="20" max="100" step="1" value="55" id="siPrice" oninput="simCalc()"><div class="cval" id="siPriceV">$55</div></div>
-      <div class="ctrl-row"><div class="clabel">환율 (원/$)</div><input type="range" min="1300" max="1500" step="10" value="1380" id="siRate" oninput="simCalc()"><div class="cval" id="siRateV">1,380원</div></div>
+      <div class="ctrl-row"><div class="clabel">환율 (원/$) <button onclick="fetchRate('siRate','siRateV',simCalc)" style="background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.25);border-radius:4px;color:var(--accent);font-size:9px;cursor:pointer;padding:2px 7px;vertical-align:middle">🔄 자동</button></div><input type="range" min="1200" max="1700" step="10" value="1380" id="siRate" oninput="simCalc()"><div class="cval" id="siRateV">1,380원</div></div>
       <div class="ctrl-row"><div class="clabel">목표 수익률</div><input type="range" min="1" max="10" step="0.5" value="3" id="siTarget" oninput="simCalc()"><div class="cval" id="siTargetV">3.0%</div></div>
     </div>
   </div>
@@ -322,7 +324,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
   <div class="ctrl-box">
     <div class="ctrl-grid">
       <div class="ctrl-row"><div class="clabel">총 투자금</div><input type="range" min="5000000" max="100000000" step="1000000" value="10000000" id="btFund" oninput="btCalc()"><div class="cval" id="btFundV">1,000만원</div></div>
-      <div class="ctrl-row"><div class="clabel">환율 (원/$)</div><input type="range" min="1300" max="1500" step="10" value="1380" id="btRate" oninput="btCalc()"><div class="cval" id="btRateV">1,380원</div></div>
+      <div class="ctrl-row"><div class="clabel">환율 (원/$) <button onclick="fetchRate('btRate','btRateV',btCalc)" style="background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.25);border-radius:4px;color:var(--accent);font-size:9px;cursor:pointer;padding:2px 7px;vertical-align:middle">🔄 자동</button></div><input type="range" min="1200" max="1700" step="10" value="1380" id="btRate" oninput="btCalc()"><div class="cval" id="btRateV">1,380원</div></div>
       <div class="ctrl-row"><div class="clabel">목표 수익률</div><div class="tgt-btns" id="btTgts"><button class="tbt on" onclick="setBtTgt(3,this)">3%</button><button class="tbt" onclick="setBtTgt(5,this)">5%</button><button class="tbt" onclick="setBtTgt(10,this)">10%</button></div><div class="cval" id="btTgtV">3%</div></div>
     </div>
   </div>
@@ -351,7 +353,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
   <div class="ctrl-box">
     <div class="ctrl-grid">
       <div class="ctrl-row"><div class="clabel">총 투자금</div><input type="range" min="5000000" max="100000000" step="1000000" value="10000000" id="cmpFund" oninput="cmpCalc()"><div class="cval" id="cmpFundV">1,000만원</div></div>
-      <div class="ctrl-row"><div class="clabel">환율 (원/$)</div><input type="range" min="1300" max="1500" step="10" value="1380" id="cmpRate" oninput="cmpCalc()"><div class="cval" id="cmpRateV">1,380원</div></div>
+      <div class="ctrl-row"><div class="clabel">환율 (원/$) <button onclick="fetchRate('cmpRate','cmpRateV',cmpCalc)" style="background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.25);border-radius:4px;color:var(--accent);font-size:9px;cursor:pointer;padding:2px 7px;vertical-align:middle">🔄 자동</button></div><input type="range" min="1200" max="1700" step="10" value="1380" id="cmpRate" oninput="cmpCalc()"><div class="cval" id="cmpRateV">1,380원</div></div>
       <div class="ctrl-row"><div class="clabel">목표 수익률</div><div class="tgt-btns" id="cmpTgts"><button class="tbt on" onclick="setCmpTgt(3,this)">3%</button><button class="tbt" onclick="setCmpTgt(5,this)">5%</button><button class="tbt" onclick="setCmpTgt(10,this)">10%</button></div><div class="cval" id="cmpTgtV">3%</div></div>
     </div>
   </div>
@@ -407,27 +409,23 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
 <div class="section">
   <div class="sec-hd"><div class="sec-num">07</div><div><div class="sec-title">매매일지</div><div class="sec-sub">// trade journal & position tracker</div></div></div>
 
-  <!-- 동기화 툴바 -->
-  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+  <!-- Firebase 동기화 툴바 -->
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
     <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px">
-      <div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--text2)">데이터가 이 브라우저에 자동 저장됩니다</div>
-      <span id="jSaveStatus" style="font-family:var(--mono);font-size:10px;transition:opacity .5s;opacity:0"></span>
+      <div id="jFbDot" style="width:8px;height:8px;border-radius:50%;background:var(--text3);flex-shrink:0;transition:background .5s"></div>
+      <div id="jFbStatusText" style="font-family:var(--mono);font-size:11px;color:var(--text2)">Firebase 연결 중...</div>
+      <span id="jSaveStatus" style="font-family:var(--mono);font-size:10px;color:var(--green);transition:opacity .5s;opacity:0;margin-left:4px"></span>
     </div>
     <div style="display:flex;gap:7px;flex-wrap:wrap">
-      <button class="jbtn" onclick="jExportJSON()" title="JSON으로 내보내기 후 다른 기기에서 가져오기">📤 JSON 내보내기</button>
-      <button class="jbtn" onclick="jImportJSON()" title="다른 기기에서 내보낸 JSON 파일 불러오기">📥 JSON 가져오기</button>
-      <button class="jbtn" onclick="jShareQR()" title="QR코드로 데이터 공유 (소량 데이터만)">📱 QR 공유</button>
+      <button class="jbtn" onclick="jExportJSON()" title="JSON 내보내기">📤 JSON 내보내기</button>
+      <button class="jbtn" onclick="jImportJSON()" title="JSON 가져오기">📥 JSON 가져오기</button>
+      <button class="jbtn" onclick="jShareQR()" title="QR 공유">📱 QR 공유</button>
     </div>
   </div>
-
-  <!-- 기기 간 사용 안내 -->
-  <div style="background:rgba(74,158,255,.05);border:1px solid rgba(74,158,255,.15);border-radius:8px;padding:12px 16px;margin-bottom:18px;font-size:12px;color:var(--text3);line-height:1.8">
-    <span style="color:var(--blue);font-family:var(--mono);font-size:11px;font-weight:600">다른 기기에서 사용하는 방법</span><br>
-    <span style="color:var(--text2)">① JSON 내보내기</span> → 파일을 카카오톡·이메일·클라우드로 전송 → 
-    <span style="color:var(--text2)">② 다른 기기에서 파일 앱으로 받기</span> → 
-    <span style="color:var(--text2)">③ JSON 가져오기</span>로 복원 |
-    소량 데이터는 <span style="color:var(--text2)">QR 공유</span>로 즉시 전송 가능
+  <!-- Firebase 안내 -->
+  <div style="background:rgba(46,204,138,.05);border:1px solid rgba(46,204,138,.15);border-radius:8px;padding:12px 16px;margin-bottom:18px;font-size:12px;color:var(--text3);line-height:1.8">
+    <span style="color:var(--green);font-family:var(--mono);font-size:11px;font-weight:600">☁️ Firebase 실시간 동기화</span><br>
+    어느 기기·브라우저에서 열어도 <span style="color:var(--text2)">동일한 매매일지가 자동 표시</span>됩니다. 추가·삭제 즉시 모든 기기에 반영됩니다.
   </div>
   <div class="g2" style="margin-bottom:16px">
     <div class="card card-a">
@@ -435,7 +433,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
       <div style="display:flex;flex-direction:column;gap:12px">
         <div><label class="jlabel">총 투자금 (원)</label><input type="number" id="jFund" value="10000000" step="1000000" class="jinput" oninput="jCalc()"></div>
         <div><label class="jlabel">분할 횟수</label><input type="number" id="jSplit" value="40" min="10" max="100" class="jinput" oninput="jCalc()"></div>
-        <div><label class="jlabel">환율 (원/$)</label><input type="number" id="jRate" value="1380" step="10" class="jinput" oninput="jCalc()"></div>
+        <div><label class="jlabel">환율 (원/$) <span id="jRateStatus" style="font-size:9px;margin-left:4px"></span></label><div style="display:flex;gap:6px"><input type="number" id="jRate" value="1380" step="10" class="jinput" oninput="jCalc()" style="flex:1"><button onclick="fetchRate('jRate',null,null)" class="jbtn" style="padding:7px 10px;font-size:10px;white-space:nowrap">🔄 자동</button></div></div>
         <div><label class="jlabel">목표 수익률 (%)</label><input type="number" id="jTarget" value="3" min="1" max="20" step="0.5" class="jinput" oninput="jCalc()"></div>
       </div>
     </div>
@@ -533,6 +531,46 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
 </div>
 
 <script>
+// ═══════════════════════════════════════
+//  Firebase 초기화 (compat SDK)
+// ═══════════════════════════════════════
+(function initFirebase() {
+  try {
+    const cfg = {
+      apiKey: "AIzaSyCk_Umty5qc8bPOY1T4D6zWnJI8EKXjpHs",
+      authDomain: "soxl-trade-journal.firebaseapp.com",
+      databaseURL: "https://soxl-trade-journal-default-rtdb.firebaseio.com",
+      projectId: "soxl-trade-journal",
+      storageBucket: "soxl-trade-journal.firebasestorage.app",
+      messagingSenderId: "827149142891",
+      appId: "1:827149142891:web:69a4250815fb77a3ec1a2e"
+    };
+    firebase.initializeApp(cfg);
+    window._fbDB = firebase.database();
+    window._fbReady = true;
+
+    window._fbSave = function(entries, cycles, settings) {
+      const dbRef = window._fbDB.ref('journal');
+      dbRef.set({
+        entries: entries.length ? entries : null,
+        cycles: cycles.length ? cycles : null,
+        settings: settings
+      });
+    };
+
+    window._fbListen = function(callback) {
+      window._fbDB.ref('journal').on('value', snap => {
+        callback(snap.val());
+      });
+    };
+
+    document.dispatchEvent(new Event('firebaseReady'));
+  } catch(e) {
+    console.warn('Firebase 초기화 실패:', e);
+    window._fbReady = false;
+  }
+})();
+
 // ═══════════════════════════════════════
 //  데이터
 // ═══════════════════════════════════════
@@ -799,38 +837,140 @@ function cmpCalc(){
 }
 
 // ═══════════════════════════════════════
+//  실시간 환율 (ExchangeRate-API)
+// ═══════════════════════════════════════
+let _cachedRate = null, _rateTime = 0;
+
+async function fetchRate(inputId, displayId, callback) {
+  const statusEl = document.getElementById('jRateStatus');
+  // 5분 캐시
+  if (_cachedRate && Date.now() - _rateTime < 300000) {
+    _applyRate(_cachedRate, inputId, displayId, callback);
+    return;
+  }
+  if (statusEl) { statusEl.textContent = '불러오는 중...'; statusEl.style.color = 'var(--accent)'; }
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+    const data = await res.json();
+    if (data.result === 'success') {
+      _cachedRate = Math.round(data.rates.KRW);
+      _rateTime = Date.now();
+      _applyRate(_cachedRate, inputId, displayId, callback);
+      if (statusEl) { statusEl.textContent = '✓ 실시간'; statusEl.style.color = 'var(--green)'; setTimeout(()=>{if(statusEl)statusEl.textContent='';}, 3000); }
+    }
+  } catch(e) {
+    if (statusEl) { statusEl.textContent = '네트워크 오류'; statusEl.style.color = 'var(--red)'; }
+    console.warn('환율 API 실패', e);
+  }
+}
+
+function _applyRate(rate, inputId, displayId, callback) {
+  const el = document.getElementById(inputId);
+  if (!el) return;
+  el.value = rate;
+  if (displayId) { const d = document.getElementById(displayId); if(d) d.textContent = rate.toLocaleString()+'원'; }
+  if (callback) callback(); else if (inputId === 'jRate') jCalc();
+}
+
+// 페이지 로드 시 매매일지 환율 자동 세팅
+window.addEventListener('load', () => { setTimeout(() => fetchRate('jRate', null, null), 800); });
+
+// ═══════════════════════════════════════
 //  매매일지
 // ═══════════════════════════════════════
 let jEntries=[], jCycles=[];
+let _fbListening = false;
 
-// ── 저장 & 불러오기 ──
-const J_KEY_E='soxl_j_entries', J_KEY_C='soxl_j_cycles', J_KEY_S='soxl_j_settings';
-
+// ── Firebase 저장 ──
 function jSave(){
-  try{
-    localStorage.setItem(J_KEY_E, JSON.stringify(jEntries));
-    localStorage.setItem(J_KEY_C, JSON.stringify(jCycles));
-    const s=jSettings();
-    localStorage.setItem(J_KEY_S, JSON.stringify({fund:s.fund,split:s.split,rate:s.rate,target:s.target}));
-    jShowSaveStatus('저장됨 ✓');
-  } catch(e){ jShowSaveStatus('저장 실패 ✗',true); }
+  const s = jSettings();
+  const settings = {fund:s.fund, split:s.split, rate:s.rate, target:s.target};
+  if (window._fbReady && window._fbSave) {
+    try {
+      window._fbSave(jEntries, jCycles, settings);
+      jShowSaveStatus('☁️ 저장됨');
+    } catch(e) { _localSave(); jShowSaveStatus('로컬 저장됨'); }
+  } else {
+    _localSave();
+    jShowSaveStatus('로컬 저장됨');
+  }
 }
 
+function _localSave(){
+  try {
+    localStorage.setItem('soxl_j_entries', JSON.stringify(jEntries));
+    localStorage.setItem('soxl_j_cycles', JSON.stringify(jCycles));
+    const s=jSettings();
+    localStorage.setItem('soxl_j_settings', JSON.stringify({fund:s.fund,split:s.split,rate:s.rate,target:s.target}));
+  } catch(e) {}
+}
+
+// ── Firebase 실시간 리스닝 ──
 function jLoad(){
-  try{
-    const e=localStorage.getItem(J_KEY_E);
-    const c=localStorage.getItem(J_KEY_C);
-    const s=localStorage.getItem(J_KEY_S);
-    if(e) jEntries=JSON.parse(e);
-    if(c) jCycles=JSON.parse(c);
-    if(s){
-      const sv=JSON.parse(s);
+  function _applyData(data) {
+    if (!data) { jEntries=[]; jCycles=[]; return; }
+    if (data.entries) {
+      // Firebase는 배열을 객체로 저장하므로 변환
+      const raw = data.entries;
+      jEntries = Array.isArray(raw) ? raw.filter(Boolean) : Object.values(raw).filter(Boolean);
+    } else { jEntries=[]; }
+    if (data.cycles) {
+      const raw = data.cycles;
+      jCycles = Array.isArray(raw) ? raw.filter(Boolean) : Object.values(raw).filter(Boolean);
+    } else { jCycles=[]; }
+    if (data.settings) {
+      const sv = data.settings;
       if(sv.fund) document.getElementById('jFund').value=sv.fund;
       if(sv.split) document.getElementById('jSplit').value=sv.split;
       if(sv.rate) document.getElementById('jRate').value=sv.rate;
       if(sv.target) document.getElementById('jTarget').value=sv.target;
     }
-  } catch(e){ console.warn('불러오기 실패',e); }
+  }
+
+  function _startFirebase() {
+    if (_fbListening) return;
+    _fbListening = true;
+    const dot = document.getElementById('jFbDot');
+    const txt = document.getElementById('jFbStatusText');
+    if(dot) dot.style.background = 'var(--accent)';
+    if(txt) txt.textContent = 'Firebase 연결됨 — 데이터 불러오는 중...';
+
+    window._fbListen(data => {
+      _applyData(data);
+      if(dot) dot.style.background = 'var(--green)';
+      if(txt) txt.textContent = '☁️ 실시간 동기화 중 — 모든 기기에서 동일하게 보입니다';
+      jCalc();
+      jRenderCycles();
+    });
+  }
+
+  if (window._fbReady) {
+    _startFirebase();
+  } else {
+    // Firebase SDK 로드 대기 (최대 5초)
+    let waited = 0;
+    const poll = setInterval(() => {
+      waited += 200;
+      if (window._fbReady) { clearInterval(poll); _startFirebase(); }
+      else if (waited >= 5000) {
+        clearInterval(poll);
+        const dot = document.getElementById('jFbDot');
+        const txt = document.getElementById('jFbStatusText');
+        if(dot) dot.style.background = 'var(--red)';
+        if(txt) txt.textContent = 'Firebase 연결 실패 — 로컬 저장 모드';
+        // 로컬 폴백
+        try {
+          const e=localStorage.getItem('soxl_j_entries');
+          const c=localStorage.getItem('soxl_j_cycles');
+          const s=localStorage.getItem('soxl_j_settings');
+          if(e) jEntries=JSON.parse(e);
+          if(c) jCycles=JSON.parse(c);
+          if(s){ const sv=JSON.parse(s); if(sv.fund) document.getElementById('jFund').value=sv.fund; if(sv.split) document.getElementById('jSplit').value=sv.split; if(sv.rate) document.getElementById('jRate').value=sv.rate; if(sv.target) document.getElementById('jTarget').value=sv.target; }
+        } catch(err){}
+        jCalc(); jRenderCycles();
+      }
+    }, 200);
+  }
 }
 
 function jShowSaveStatus(msg, err=false){
@@ -839,7 +979,7 @@ function jShowSaveStatus(msg, err=false){
   el.textContent=msg;
   el.style.color=err?'var(--red)':'var(--green)';
   el.style.opacity='1';
-  setTimeout(()=>{ el.style.opacity='0'; },2000);
+  setTimeout(()=>{ el.style.opacity='0'; },2500);
 }
 
 // ── JSON 내보내기 ──
