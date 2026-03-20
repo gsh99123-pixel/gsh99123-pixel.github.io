@@ -414,18 +414,39 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
     <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px">
       <div id="jFbDot" style="width:8px;height:8px;border-radius:50%;background:var(--text3);flex-shrink:0;transition:background .5s"></div>
       <div id="jFbStatusText" style="font-family:var(--mono);font-size:11px;color:var(--text2)">Firebase 연결 중...</div>
-      <span id="jSaveStatus" style="font-family:var(--mono);font-size:10px;color:var(--green);transition:opacity .5s;opacity:0;margin-left:4px"></span>
+      <span id="jSaveStatus" style="font-family:var(--mono);font-size:10px;color:var(--green);transition:opacity .5s;opacity:0;margin-left:6px"></span>
     </div>
     <div style="display:flex;gap:7px;flex-wrap:wrap">
-      <button class="jbtn" onclick="jExportJSON()" title="JSON 내보내기">📤 JSON 내보내기</button>
-      <button class="jbtn" onclick="jImportJSON()" title="JSON 가져오기">📥 JSON 가져오기</button>
-      <button class="jbtn" onclick="jShareQR()" title="QR 공유">📱 QR 공유</button>
+      <button class="jbtn" onclick="jExportJSON()">📤 JSON 내보내기</button>
+      <button class="jbtn" onclick="jImportJSON()">📥 JSON 가져오기</button>
+      <button class="jbtn" onclick="jShareQR()">📱 QR 공유</button>
     </div>
   </div>
+
+  <!-- SOXL 가격 자동 불러오기 카드 -->
+  <div style="background:rgba(240,192,64,.05);border:1px solid rgba(240,192,64,.2);border-radius:10px;padding:16px 18px;margin-bottom:12px">
+    <div style="font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px">
+      📡 SOXL 가격 자동 불러오기
+      <span id="jSoxlSource" style="margin-left:8px;font-size:9px;color:var(--text3)"></span>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div>
+        <div id="jSoxlPriceDisp" style="font-family:var(--display);font-size:38px;color:var(--accent);line-height:1">--.--</div>
+        <div id="jSoxlChangeDisp" style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:3px">전일대비 —</div>
+        <div id="jSoxlTimeDisp" style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-top:2px"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:7px;min-width:190px">
+        <button class="jbtn" onclick="fetchSoxlPrice(true)" id="jSoxlFetchBtn">📡 SOXL 가격 불러오기</button>
+        <button class="jbtn jbtn-g" onclick="applySoxlToCurrent()" id="jSoxlApplyCurrentBtn" style="display:none">📊 현재가란에 적용</button>
+        <button class="jbtn" onclick="applySoxlToEntry()" id="jSoxlApplyEntryBtn" style="display:none">✏️ 매수가에 적용</button>
+      </div>
+      <div id="jSoxlStatus" style="flex:1;min-width:160px;font-family:var(--mono);font-size:10px;color:var(--text3);line-height:1.8"></div>
+    </div>
+  </div>
+
   <!-- Firebase 안내 -->
-  <div style="background:rgba(46,204,138,.05);border:1px solid rgba(46,204,138,.15);border-radius:8px;padding:12px 16px;margin-bottom:18px;font-size:12px;color:var(--text3);line-height:1.8">
-    <span style="color:var(--green);font-family:var(--mono);font-size:11px;font-weight:600">☁️ Firebase 실시간 동기화</span><br>
-    어느 기기·브라우저에서 열어도 <span style="color:var(--text2)">동일한 매매일지가 자동 표시</span>됩니다. 추가·삭제 즉시 모든 기기에 반영됩니다.
+  <div style="background:rgba(46,204,138,.05);border:1px solid rgba(46,204,138,.15);border-radius:8px;padding:10px 16px;margin-bottom:18px;font-size:12px;color:var(--text3)">
+    <span style="color:var(--green);font-family:var(--mono);font-size:11px;font-weight:600">☁️ Firebase 실시간 동기화</span> — 어느 기기·브라우저에서 열어도 동일한 매매일지가 자동 표시됩니다.
   </div>
   <div class="g2" style="margin-bottom:16px">
     <div class="card card-a">
@@ -531,46 +552,6 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
 </div>
 
 <script>
-// ═══════════════════════════════════════
-//  Firebase 초기화 (compat SDK)
-// ═══════════════════════════════════════
-(function initFirebase() {
-  try {
-    const cfg = {
-      apiKey: "AIzaSyCk_Umty5qc8bPOY1T4D6zWnJI8EKXjpHs",
-      authDomain: "soxl-trade-journal.firebaseapp.com",
-      databaseURL: "https://soxl-trade-journal-default-rtdb.firebaseio.com",
-      projectId: "soxl-trade-journal",
-      storageBucket: "soxl-trade-journal.firebasestorage.app",
-      messagingSenderId: "827149142891",
-      appId: "1:827149142891:web:69a4250815fb77a3ec1a2e"
-    };
-    firebase.initializeApp(cfg);
-    window._fbDB = firebase.database();
-    window._fbReady = true;
-
-    window._fbSave = function(entries, cycles, settings) {
-      const dbRef = window._fbDB.ref('journal');
-      dbRef.set({
-        entries: entries.length ? entries : null,
-        cycles: cycles.length ? cycles : null,
-        settings: settings
-      });
-    };
-
-    window._fbListen = function(callback) {
-      window._fbDB.ref('journal').on('value', snap => {
-        callback(snap.val());
-      });
-    };
-
-    document.dispatchEvent(new Event('firebaseReady'));
-  } catch(e) {
-    console.warn('Firebase 초기화 실패:', e);
-    window._fbReady = false;
-  }
-})();
-
 // ═══════════════════════════════════════
 //  데이터
 // ═══════════════════════════════════════
@@ -837,16 +818,46 @@ function cmpCalc(){
 }
 
 // ═══════════════════════════════════════
-//  실시간 환율 (ExchangeRate-API)
+//  Firebase 초기화 (compat SDK)
+// ═══════════════════════════════════════
+(function() {
+  try {
+    firebase.initializeApp({
+      apiKey: "AIzaSyCk_Umty5qc8bPOY1T4D6zWnJI8EKXjpHs",
+      authDomain: "soxl-trade-journal.firebaseapp.com",
+      databaseURL: "https://soxl-trade-journal-default-rtdb.firebaseio.com",
+      projectId: "soxl-trade-journal",
+      storageBucket: "soxl-trade-journal.firebasestorage.app",
+      messagingSenderId: "827149142891",
+      appId: "1:827149142891:web:69a4250815fb77a3ec1a2e"
+    });
+    window._fbDB = firebase.database();
+    window._fbReady = true;
+    window._fbSave = function(entries, cycles, settings) {
+      window._fbDB.ref('journal').set({
+        entries: entries.length ? entries : null,
+        cycles: cycles.length ? cycles : null,
+        settings: settings
+      });
+    };
+    window._fbListen = function(cb) {
+      window._fbDB.ref('journal').on('value', snap => cb(snap.val()));
+    };
+  } catch(e) {
+    console.warn('Firebase 초기화 실패:', e);
+    window._fbReady = false;
+  }
+})();
+
+// ═══════════════════════════════════════
+//  실시간 환율 (ExchangeRate-API, 무료·키 불필요)
 // ═══════════════════════════════════════
 let _cachedRate = null, _rateTime = 0;
 
 async function fetchRate(inputId, displayId, callback) {
   const statusEl = document.getElementById('jRateStatus');
-  // 5분 캐시
   if (_cachedRate && Date.now() - _rateTime < 300000) {
-    _applyRate(_cachedRate, inputId, displayId, callback);
-    return;
+    _applyRate(_cachedRate, inputId, displayId, callback); return;
   }
   if (statusEl) { statusEl.textContent = '불러오는 중...'; statusEl.style.color = 'var(--accent)'; }
   try {
@@ -856,14 +867,12 @@ async function fetchRate(inputId, displayId, callback) {
       _cachedRate = Math.round(data.rates.KRW);
       _rateTime = Date.now();
       _applyRate(_cachedRate, inputId, displayId, callback);
-      if (statusEl) { statusEl.textContent = '✓ 실시간'; statusEl.style.color = 'var(--green)'; setTimeout(()=>{if(statusEl)statusEl.textContent='';}, 3000); }
+      if (statusEl) { statusEl.textContent = '✓ 실시간'; statusEl.style.color = 'var(--green)'; setTimeout(()=>{if(statusEl)statusEl.textContent='';},3000); }
     }
   } catch(e) {
-    if (statusEl) { statusEl.textContent = '네트워크 오류'; statusEl.style.color = 'var(--red)'; }
-    console.warn('환율 API 실패', e);
+    if (statusEl) { statusEl.textContent = '오류'; statusEl.style.color = 'var(--red)'; }
   }
 }
-
 function _applyRate(rate, inputId, displayId, callback) {
   const el = document.getElementById(inputId);
   if (!el) return;
@@ -872,8 +881,152 @@ function _applyRate(rate, inputId, displayId, callback) {
   if (callback) callback(); else if (inputId === 'jRate') jCalc();
 }
 
-// 페이지 로드 시 매매일지 환율 자동 세팅
-window.addEventListener('load', () => { setTimeout(() => fetchRate('jRate', null, null), 800); });
+// ═══════════════════════════════════════
+//  SOXL 가격 자동 불러오기
+//  3중 폴백 구조:
+//  1순위: Finnhub 무료 API (실제 키 발급 시 정확)
+//  2순위: corsproxy.io + Yahoo Finance (CORS 우회)
+//  3순위: 수동 입력 안내
+// ═══════════════════════════════════════
+
+// ▶ Finnhub 무료 API 키 발급: finnhub.io/register (무료, 분당 60회)
+// ▶ 아래 키를 발급받은 실제 키로 교체하면 더 정확한 실시간 가격 제공
+const FINNHUB_KEY = 'sandbox_c2l4q4iad3i9tlpc0jug';
+
+let _soxlPrice = null, _soxlPrevClose = null, _soxlFetchTime = 0;
+
+// 미국 주식 장 마감 여부 판단 (ET 기준)
+function _isMarketClosed() {
+  const now = new Date();
+  // UTC → ET 변환 (EDT: UTC-4, EST: UTC-5)
+  const month = now.getUTCMonth() + 1;
+  const isDST = month >= 3 && month <= 11;
+  const etOffset = isDST ? -4 : -5;
+  const etHour = (now.getUTCHours() + etOffset + 24) % 24;
+  const etMin = now.getUTCMinutes();
+  const etTime = etHour * 60 + etMin;
+  const dayOfWeek = now.getUTCDay();
+  // 주말이면 마감
+  if (dayOfWeek === 0 || dayOfWeek === 6) return true;
+  // 장 시간: 9:30 ~ 16:00 ET
+  return etTime < 9 * 60 + 30 || etTime >= 16 * 60;
+}
+
+function _updateSoxlUI(price, change, changePct, prevClose, sourceName, isClose) {
+  const dispEl = document.getElementById('jSoxlPriceDisp');
+  const changeEl = document.getElementById('jSoxlChangeDisp');
+  const timeEl = document.getElementById('jSoxlTimeDisp');
+  const sourceEl = document.getElementById('jSoxlSource');
+  const applyCurrentBtn = document.getElementById('jSoxlApplyCurrentBtn');
+  const applyEntryBtn = document.getElementById('jSoxlApplyEntryBtn');
+  const statusEl = document.getElementById('jSoxlStatus');
+
+  if (dispEl) dispEl.textContent = '$' + price.toFixed(2);
+  if (changeEl) {
+    const col = change >= 0 ? 'var(--green)' : 'var(--red)';
+    changeEl.innerHTML = `<span style="color:${col}">${change>=0?'+':''}${change.toFixed(2)} (${changePct>=0?'+':''}${changePct.toFixed(2)}%)</span>`;
+  }
+  const now = new Date();
+  const timeStr = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')} 기준`;
+  if (timeEl) timeEl.textContent = timeStr;
+  if (sourceEl) sourceEl.textContent = `출처: ${sourceName}`;
+  if (applyCurrentBtn) applyCurrentBtn.style.display = 'block';
+  if (applyEntryBtn) applyEntryBtn.style.display = 'block';
+  if (statusEl) {
+    const label = isClose ? '⏹ 장 마감 — 당일 종가' : '🟢 장중 — 실시간';
+    statusEl.innerHTML = `<span style="color:${isClose?'var(--accent)':'var(--green)'}">${label}</span><br>전일 종가: $${prevClose ? prevClose.toFixed(2) : '-'}`;
+  }
+}
+
+// 1순위: Finnhub API
+async function _fetchViafinnhub() {
+  const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=SOXL&token=${FINNHUB_KEY}`);
+  const data = await res.json();
+  if (!data || !data.c || data.c <= 0) throw new Error('Finnhub 데이터 없음');
+  return {
+    price: data.c,
+    change: data.d || 0,
+    changePct: data.dp || 0,
+    prevClose: data.pc || 0,
+    source: 'Finnhub'
+  };
+}
+
+// 2순위: corsproxy.io + Yahoo Finance
+async function _fetchViaYahoo() {
+  const yahooUrl = 'https://query1.finance.yahoo.com/v8/finance/chart/SOXL?interval=1d&range=2d';
+  const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(yahooUrl);
+  const res = await fetch(proxyUrl);
+  const data = await res.json();
+  const meta = data.chart.result[0].meta;
+  const price = meta.regularMarketPrice;
+  const prevClose = meta.chartPreviousClose || meta.previousClose;
+  if (!price || price <= 0) throw new Error('Yahoo 데이터 없음');
+  const change = price - prevClose;
+  const changePct = prevClose ? (change / prevClose * 100) : 0;
+  return { price, change, changePct, prevClose, source: 'Yahoo Finance' };
+}
+
+async function fetchSoxlPrice(manual = false) {
+  const btn = document.getElementById('jSoxlFetchBtn');
+  const statusEl = document.getElementById('jSoxlStatus');
+  // 5분 캐시 (수동 호출은 항상 갱신)
+  if (!manual && _soxlPrice && Date.now() - _soxlFetchTime < 300000) return;
+
+  if (btn) { btn.textContent = '⏳ 불러오는 중...'; btn.disabled = true; }
+  if (statusEl) statusEl.textContent = '가격 데이터 요청 중...';
+
+  const isClosed = _isMarketClosed();
+  let result = null;
+
+  // 1순위 시도
+  try {
+    result = await _fetchViafinnhub();
+  } catch(e) {
+    console.warn('Finnhub 실패, Yahoo 시도:', e);
+    if (statusEl) statusEl.textContent = '1차 API 실패 → Yahoo Finance 시도 중...';
+  }
+
+  // 2순위 시도
+  if (!result) {
+    try {
+      result = await _fetchViaYahoo();
+    } catch(e) {
+      console.warn('Yahoo도 실패:', e);
+    }
+  }
+
+  if (result) {
+    _soxlPrice = result.price;
+    _soxlPrevClose = result.prevClose;
+    _soxlFetchTime = Date.now();
+    _updateSoxlUI(result.price, result.change, result.changePct, result.prevClose, result.source, isClosed);
+    if (btn) { btn.textContent = '✅ 완료 — 다시 불러오기'; btn.disabled = false; }
+  } else {
+    // 3순위: 수동 입력 안내
+    const dispEl = document.getElementById('jSoxlPriceDisp');
+    if (dispEl) dispEl.textContent = '수동 입력';
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--red)">자동 불러오기 실패</span><br><span style="color:var(--accent)">아래 매수가란에 직접 입력하세요</span>';
+    if (btn) { btn.textContent = '❌ 실패 — 재시도'; btn.disabled = false; }
+  }
+}
+
+function applySoxlToEntry() {
+  if (!_soxlPrice) { alert('먼저 "SOXL 가격 불러오기" 버튼을 눌러주세요.'); return; }
+  const el = document.getElementById('jPrice');
+  if (el) { el.value = _soxlPrice.toFixed(2); jPreview(); }
+}
+function applySoxlToCurrent() {
+  if (!_soxlPrice) { alert('먼저 "SOXL 가격 불러오기" 버튼을 눌러주세요.'); return; }
+  const el = document.getElementById('jCurPrice');
+  if (el) { el.value = _soxlPrice.toFixed(2); jUpdatePnl(); }
+}
+
+// 페이지 로드 시 자동 실행
+window.addEventListener('load', () => {
+  setTimeout(() => fetchRate('jRate', null, null), 600);
+  setTimeout(() => fetchSoxlPrice(false), 1200);
+});
 
 // ═══════════════════════════════════════
 //  매매일지
@@ -881,19 +1034,13 @@ window.addEventListener('load', () => { setTimeout(() => fetchRate('jRate', null
 let jEntries=[], jCycles=[];
 let _fbListening = false;
 
-// ── Firebase 저장 ──
 function jSave(){
   const s = jSettings();
   const settings = {fund:s.fund, split:s.split, rate:s.rate, target:s.target};
   if (window._fbReady && window._fbSave) {
-    try {
-      window._fbSave(jEntries, jCycles, settings);
-      jShowSaveStatus('☁️ 저장됨');
-    } catch(e) { _localSave(); jShowSaveStatus('로컬 저장됨'); }
-  } else {
-    _localSave();
-    jShowSaveStatus('로컬 저장됨');
-  }
+    try { window._fbSave(jEntries, jCycles, settings); jShowSaveStatus('☁️ 저장됨'); }
+    catch(e) { _localSave(); jShowSaveStatus('로컬 저장'); }
+  } else { _localSave(); jShowSaveStatus('로컬 저장'); }
 }
 
 function _localSave(){
@@ -905,24 +1052,16 @@ function _localSave(){
   } catch(e) {}
 }
 
-// ── Firebase 실시간 리스닝 ──
 function jLoad(){
   function _applyData(data) {
     if (!data) { jEntries=[]; jCycles=[]; return; }
-    if (data.entries) {
-      // Firebase는 배열을 객체로 저장하므로 변환
-      const raw = data.entries;
-      jEntries = Array.isArray(raw) ? raw.filter(Boolean) : Object.values(raw).filter(Boolean);
-    } else { jEntries=[]; }
-    if (data.cycles) {
-      const raw = data.cycles;
-      jCycles = Array.isArray(raw) ? raw.filter(Boolean) : Object.values(raw).filter(Boolean);
-    } else { jCycles=[]; }
+    if (data.entries) { const r=data.entries; jEntries=Array.isArray(r)?r.filter(Boolean):Object.values(r).filter(Boolean); } else jEntries=[];
+    if (data.cycles)  { const r=data.cycles;  jCycles =Array.isArray(r)?r.filter(Boolean):Object.values(r).filter(Boolean); } else jCycles=[];
     if (data.settings) {
-      const sv = data.settings;
-      if(sv.fund) document.getElementById('jFund').value=sv.fund;
-      if(sv.split) document.getElementById('jSplit').value=sv.split;
-      if(sv.rate) document.getElementById('jRate').value=sv.rate;
+      const sv=data.settings;
+      if(sv.fund)   document.getElementById('jFund').value=sv.fund;
+      if(sv.split)  document.getElementById('jSplit').value=sv.split;
+      if(sv.rate)   document.getElementById('jRate').value=sv.rate;
       if(sv.target) document.getElementById('jTarget').value=sv.target;
     }
   }
@@ -930,55 +1069,45 @@ function jLoad(){
   function _startFirebase() {
     if (_fbListening) return;
     _fbListening = true;
-    const dot = document.getElementById('jFbDot');
-    const txt = document.getElementById('jFbStatusText');
-    if(dot) dot.style.background = 'var(--accent)';
-    if(txt) txt.textContent = 'Firebase 연결됨 — 데이터 불러오는 중...';
-
+    const dot=document.getElementById('jFbDot'), txt=document.getElementById('jFbStatusText');
+    if(dot) dot.style.background='var(--accent)';
+    if(txt) txt.textContent='Firebase 연결됨 — 데이터 불러오는 중...';
     window._fbListen(data => {
       _applyData(data);
-      if(dot) dot.style.background = 'var(--green)';
-      if(txt) txt.textContent = '☁️ 실시간 동기화 중 — 모든 기기에서 동일하게 보입니다';
-      jCalc();
-      jRenderCycles();
+      if(dot) dot.style.background='var(--green)';
+      if(txt) txt.textContent='☁️ 실시간 동기화 중 — 모든 기기에서 동일하게 보입니다';
+      jCalc(); jRenderCycles();
     });
   }
 
   if (window._fbReady) {
     _startFirebase();
   } else {
-    // Firebase SDK 로드 대기 (최대 5초)
-    let waited = 0;
-    const poll = setInterval(() => {
-      waited += 200;
-      if (window._fbReady) { clearInterval(poll); _startFirebase(); }
-      else if (waited >= 5000) {
+    let waited=0;
+    const poll=setInterval(()=>{
+      waited+=200;
+      if(window._fbReady){ clearInterval(poll); _startFirebase(); return; }
+      if(waited>=5000){
         clearInterval(poll);
-        const dot = document.getElementById('jFbDot');
-        const txt = document.getElementById('jFbStatusText');
-        if(dot) dot.style.background = 'var(--red)';
-        if(txt) txt.textContent = 'Firebase 연결 실패 — 로컬 저장 모드';
-        // 로컬 폴백
+        const dot=document.getElementById('jFbDot'), txt=document.getElementById('jFbStatusText');
+        if(dot) dot.style.background='var(--red)';
+        if(txt) txt.textContent='Firebase 연결 실패 — 로컬 저장 모드로 동작 중';
         try {
-          const e=localStorage.getItem('soxl_j_entries');
-          const c=localStorage.getItem('soxl_j_cycles');
+          const e=localStorage.getItem('soxl_j_entries'); if(e) jEntries=JSON.parse(e);
+          const c=localStorage.getItem('soxl_j_cycles');  if(c) jCycles=JSON.parse(c);
           const s=localStorage.getItem('soxl_j_settings');
-          if(e) jEntries=JSON.parse(e);
-          if(c) jCycles=JSON.parse(c);
-          if(s){ const sv=JSON.parse(s); if(sv.fund) document.getElementById('jFund').value=sv.fund; if(sv.split) document.getElementById('jSplit').value=sv.split; if(sv.rate) document.getElementById('jRate').value=sv.rate; if(sv.target) document.getElementById('jTarget').value=sv.target; }
+          if(s){ const sv=JSON.parse(s); if(sv.fund)document.getElementById('jFund').value=sv.fund; if(sv.split)document.getElementById('jSplit').value=sv.split; if(sv.rate)document.getElementById('jRate').value=sv.rate; if(sv.target)document.getElementById('jTarget').value=sv.target; }
         } catch(err){}
         jCalc(); jRenderCycles();
       }
-    }, 200);
+    },200);
   }
 }
 
 function jShowSaveStatus(msg, err=false){
   const el=document.getElementById('jSaveStatus');
   if(!el) return;
-  el.textContent=msg;
-  el.style.color=err?'var(--red)':'var(--green)';
-  el.style.opacity='1';
+  el.textContent=msg; el.style.color=err?'var(--red)':'var(--green)'; el.style.opacity='1';
   setTimeout(()=>{ el.style.opacity='0'; },2500);
 }
 
