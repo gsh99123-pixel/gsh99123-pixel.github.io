@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <title>SOXL 무한매수법 — 라오어 전략 시스템</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
@@ -23,6 +23,70 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 ::-webkit-scrollbar-track{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
 
+/* ─── 모바일 입력 전역 패치 ─── */
+input, textarea, select {
+  /* 삼성 인터넷/갤럭시 Chrome: 줌 방지 + 터치 최적화 */
+  font-size: 16px !important; /* 16px 미만이면 iOS/Android가 자동 줌 */
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 8px;
+  touch-action: manipulation;
+}
+/* number 타입 스피너 숨기기 */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] { -moz-appearance: textfield; }
+
+/* range 슬라이더 모바일 최적화 */
+input[type=range] {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 100%;
+  height: 6px; /* 더 두껍게 — 터치하기 쉽게 */
+  background: var(--bg4);
+  border-radius: 3px;
+  outline: none;
+  touch-action: pan-x; /* 수평 터치 제스처 허용 */
+  cursor: pointer;
+  /* 터치 영역 확보 */
+  padding: 10px 0;
+  margin: -10px 0;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;  /* 터치 영역 확대 */
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 3px solid var(--bg);
+  box-shadow: 0 0 0 2px rgba(240,192,64,.3);
+}
+input[type=range]::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 3px solid var(--bg);
+}
+input[type=range]:active::-webkit-slider-thumb {
+  box-shadow: 0 0 0 6px rgba(240,192,64,.2);
+}
+
+/* date 입력 갤럭시 호환 */
+input[type=date] {
+  color-scheme: dark;
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 10px 13px;
+  width: 100%;
+}
+
 /* HEADER */
 header{position:relative;padding:70px 40px 50px;overflow:hidden;border-bottom:1px solid var(--border)}
 header::before{content:'';position:absolute;top:-100px;right:-100px;width:600px;height:600px;background:radial-gradient(circle,rgba(240,192,64,.07) 0%,transparent 70%);pointer-events:none}
@@ -39,7 +103,15 @@ h1 span{color:var(--accent)}
 /* NAV */
 nav{background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;backdrop-filter:blur(8px)}
 .nav-inner{max-width:1200px;margin:0 auto;display:flex;overflow-x:auto}
-.nav-btn{padding:15px 18px;font-family:var(--sans);font-size:12px;font-weight:500;color:var(--text3);background:none;border:none;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s;letter-spacing:.02em}
+.nav-btn{
+  padding:15px 18px;font-family:var(--sans);font-size:12px;font-weight:500;color:var(--text3);
+  background:none;border:none;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;
+  transition:all .2s;letter-spacing:.02em;
+  /* 모바일 터치 최적화 */
+  min-height:48px;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:rgba(240,192,64,.15);
+}
 .nav-btn:hover{color:var(--text2)}
 .nav-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
 
@@ -84,16 +156,21 @@ main{max-width:1200px;margin:0 auto;padding:0 40px 80px}
 .m10{background:rgba(232,85,85,.2);color:#ff6666;border:1px solid rgba(232,85,85,.4)}
 .m15{background:rgba(255,50,50,.25);color:#ff4444;border:1px solid rgba(255,50,50,.5)}
 
-/* CONTROLS */
+/* CONTROLS — 모바일 최적화된 슬라이더 영역 */
 .ctrl-box{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
 .ctrl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:18px}
 .ctrl-row{display:flex;flex-direction:column;gap:7px}
 .clabel{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--text3);text-transform:uppercase}
 .cval{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--accent)}
-input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:3px;background:var(--bg4);border-radius:2px;outline:none}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid var(--bg)}
 .tgt-btns{display:flex;gap:6px}
-.tbt{flex:1;padding:7px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;font-family:var(--mono);font-size:11px;color:var(--text3);cursor:pointer;transition:all .15s}
+.tbt{
+  flex:1;padding:10px;background:var(--bg4);border:1px solid var(--border2);border-radius:6px;
+  font-family:var(--mono);font-size:11px;color:var(--text3);cursor:pointer;transition:all .15s;
+  /* 모바일 터치 */
+  min-height:44px;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
 .tbt.on{background:rgba(240,192,64,.12);border-color:var(--accent);color:var(--accent)}
 
 /* CHARTS */
@@ -135,7 +212,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
 
 /* INNER TABS */
 .itabs{display:flex;gap:4px;margin-bottom:18px;flex-wrap:wrap}
-.itab{padding:6px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:10.5px;color:var(--text3);cursor:pointer;transition:all .15s}
+.itab{
+  padding:8px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:6px;
+  font-family:var(--mono);font-size:10.5px;color:var(--text3);cursor:pointer;transition:all .15s;
+  min-height:40px;touch-action:manipulation;
+}
 .itab.on{background:rgba(240,192,64,.1);border-color:rgba(240,192,64,.3);color:var(--accent)}
 .tc{display:none}.tc.on{display:block}
 
@@ -156,17 +237,46 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
 .rbar{height:100%;border-radius:3px;transition:width .7s ease}
 .rval{font-family:var(--mono);font-size:12px;font-weight:600;min-width:72px;text-align:right}
 
-/* JOURNAL */
+/* JOURNAL — 모바일 입력 최적화 */
 .jlabel{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:5px;display:block}
-.jinput{background:var(--bg4);border:1px solid var(--border2);border-radius:8px;padding:9px 13px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none;transition:border-color .2s;width:100%}
-.jinput:focus{border-color:rgba(240,192,64,.4)}
-.jinput::placeholder{color:var(--text3)}
-.jbtn{padding:7px 18px;background:rgba(240,192,64,.12);border:1px solid rgba(240,192,64,.25);border-radius:8px;color:var(--accent);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s;white-space:nowrap}
-.jbtn:hover{background:rgba(240,192,64,.22)}
+.jinput{
+  background:var(--bg4);
+  border:1px solid var(--border2);
+  border-radius:8px;
+  padding:12px 13px; /* 터치 영역 확대 */
+  font-family:var(--mono);
+  font-size:16px !important; /* 갤럭시 자동줌 방지 — 반드시 16px 이상 */
+  color:var(--text);
+  outline:none;
+  transition:border-color .2s;
+  width:100%;
+  min-height:48px; /* 터치 영역 최소 48px */
+  -webkit-appearance:none;
+  appearance:none;
+  touch-action:manipulation;
+}
+.jinput:focus{border-color:rgba(240,192,64,.5);background:rgba(30,30,40,1)}
+.jinput::placeholder{color:var(--text3);font-size:14px}
+/* 갤럭시 autofill 스타일 오버라이드 */
+.jinput:-webkit-autofill,
+.jinput:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg4) inset;
+  -webkit-text-fill-color: var(--text);
+  caret-color: var(--text);
+}
+
+.jbtn{
+  padding:10px 18px;background:rgba(240,192,64,.12);border:1px solid rgba(240,192,64,.25);
+  border-radius:8px;color:var(--accent);font-family:var(--mono);font-size:11px;cursor:pointer;
+  transition:all .15s;white-space:nowrap;
+  min-height:44px;touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+.jbtn:hover,.jbtn:active{background:rgba(240,192,64,.22)}
 .jbtn-g{background:rgba(46,204,138,.1);border-color:rgba(46,204,138,.25);color:var(--green)}
-.jbtn-g:hover{background:rgba(46,204,138,.2)}
+.jbtn-g:hover,.jbtn-g:active{background:rgba(46,204,138,.2)}
 .jbtn-r{background:rgba(232,85,85,.08);border-color:rgba(232,85,85,.2);color:var(--red)}
-.jbtn-r:hover{background:rgba(232,85,85,.16)}
+.jbtn-r:hover,.jbtn-r:active{background:rgba(232,85,85,.16)}
 .gauge-wrap{position:relative;height:44px;background:var(--bg4);border-radius:10px;overflow:hidden;margin-bottom:10px}
 .gauge-bar{height:100%;width:0%;border-radius:10px;transition:width .6s ease;position:relative;background:linear-gradient(90deg,rgba(74,158,255,.6),rgba(240,192,64,.8),rgba(232,85,85,.9))}
 .gauge-lbl{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:13px;font-weight:600;color:#fff;white-space:nowrap}
@@ -174,6 +284,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
 .stage-chip.done{opacity:1}
 .stage-chip.pending{opacity:.3}
 .jcycle-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--bg4);border-radius:8px;border-left:3px solid var(--green);flex-wrap:wrap;gap:8px}
+
+/* 매수 기록 추가 그리드 — 모바일에서 세로 배치 */
+.add-form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr 1fr auto;
+  gap:10px;
+  align-items:end;
+}
 
 /* RESPONSIVE */
 @media(max-width:768px){
@@ -183,6 +301,58 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
   .cmp-grid{grid-template-columns:repeat(2,1fr)}
   h1{font-size:44px}
   .sec-num{font-size:30px}
+
+  /* 슬라이더 터치 영역 더 확보 */
+  input[type=range] {
+    height:8px;
+    padding:14px 0;
+    margin:-14px 0;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    width:28px;
+    height:28px;
+  }
+
+  /* 매수 기록 폼 — 모바일에서 2열 그리드 */
+  .add-form-grid{
+    grid-template-columns: 1fr 1fr;
+  }
+  .add-form-grid .add-btn-col{
+    grid-column: 1 / -1;
+  }
+  .add-form-grid .add-btn-col button{
+    width:100%;
+    padding:14px;
+    font-size:14px;
+  }
+
+  /* 버튼 터치 영역 확대 */
+  .jbtn, .tbt, .itab, .nav-btn {
+    min-height:48px;
+  }
+
+  /* 저널 설정 2열 배치 */
+  .journal-settings-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media(max-width:480px){
+  .cmp-grid{grid-template-columns:1fr}
+  
+  /* 슬라이더 컨트롤 박스 패딩 축소 */
+  .ctrl-box{padding:16px 12px}
+  .ctrl-grid{gap:20px}
+  
+  /* 입력 폼 완전 세로 배치 */
+  .add-form-grid{
+    grid-template-columns: 1fr;
+  }
+  .add-form-grid .add-btn-col{
+    grid-column:1;
+  }
+
+  main{padding:0 12px 60px}
 }
 </style>
 </head>
@@ -304,7 +474,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
     <div class="ctrl-grid">
       <div class="ctrl-row"><div class="clabel">총 투자금</div><input type="range" min="5000000" max="100000000" step="1000000" value="10000000" id="siFund" oninput="simCalc()"><div class="cval" id="siFundV">1,000만원</div></div>
       <div class="ctrl-row"><div class="clabel">SOXL 현재가 ($)</div><input type="range" min="20" max="100" step="1" value="55" id="siPrice" oninput="simCalc()"><div class="cval" id="siPriceV">$55</div></div>
-      <div class="ctrl-row"><div class="clabel">환율 (원/$) <button onclick="fetchRate('siRate','siRateV',simCalc)" style="background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.25);border-radius:4px;color:var(--accent);font-size:9px;cursor:pointer;padding:2px 7px;vertical-align:middle">🔄 자동</button></div><input type="range" min="1200" max="1700" step="10" value="1380" id="siRate" oninput="simCalc()"><div class="cval" id="siRateV">1,380원</div></div>
+      <div class="ctrl-row"><div class="clabel">환율 (원/$) <button onclick="fetchRate('siRate','siRateV',simCalc)" style="background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.25);border-radius:4px;color:var(--accent);font-size:9px;cursor:pointer;padding:4px 7px;vertical-align:middle;touch-action:manipulation">🔄 자동</button></div><input type="range" min="1200" max="1700" step="10" value="1380" id="siRate" oninput="simCalc()"><div class="cval" id="siRateV">1,380원</div></div>
       <div class="ctrl-row"><div class="clabel">목표 수익률</div><input type="range" min="1" max="10" step="0.5" value="3" id="siTarget" oninput="simCalc()"><div class="cval" id="siTargetV">3.0%</div></div>
     </div>
   </div>
@@ -324,7 +494,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
   <div class="ctrl-box">
     <div class="ctrl-grid">
       <div class="ctrl-row"><div class="clabel">총 투자금</div><input type="range" min="5000000" max="100000000" step="1000000" value="10000000" id="btFund" oninput="btCalc()"><div class="cval" id="btFundV">1,000만원</div></div>
-      <div class="ctrl-row"><div class="clabel">환율 (원/$) <button onclick="fetchRate('btRate','btRateV',btCalc)" style="background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.25);border-radius:4px;color:var(--accent);font-size:9px;cursor:pointer;padding:2px 7px;vertical-align:middle">🔄 자동</button></div><input type="range" min="1200" max="1700" step="10" value="1380" id="btRate" oninput="btCalc()"><div class="cval" id="btRateV">1,380원</div></div>
+      <div class="ctrl-row"><div class="clabel">환율 (원/$) <button onclick="fetchRate('btRate','btRateV',btCalc)" style="background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.25);border-radius:4px;color:var(--accent);font-size:9px;cursor:pointer;padding:4px 7px;vertical-align:middle;touch-action:manipulation">🔄 자동</button></div><input type="range" min="1200" max="1700" step="10" value="1380" id="btRate" oninput="btCalc()"><div class="cval" id="btRateV">1,380원</div></div>
       <div class="ctrl-row"><div class="clabel">목표 수익률</div><div class="tgt-btns" id="btTgts"><button class="tbt on" onclick="setBtTgt(3,this)">3%</button><button class="tbt" onclick="setBtTgt(5,this)">5%</button><button class="tbt" onclick="setBtTgt(10,this)">10%</button></div><div class="cval" id="btTgtV">3%</div></div>
     </div>
   </div>
@@ -353,7 +523,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
   <div class="ctrl-box">
     <div class="ctrl-grid">
       <div class="ctrl-row"><div class="clabel">총 투자금</div><input type="range" min="5000000" max="100000000" step="1000000" value="10000000" id="cmpFund" oninput="cmpCalc()"><div class="cval" id="cmpFundV">1,000만원</div></div>
-      <div class="ctrl-row"><div class="clabel">환율 (원/$) <button onclick="fetchRate('cmpRate','cmpRateV',cmpCalc)" style="background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.25);border-radius:4px;color:var(--accent);font-size:9px;cursor:pointer;padding:2px 7px;vertical-align:middle">🔄 자동</button></div><input type="range" min="1200" max="1700" step="10" value="1380" id="cmpRate" oninput="cmpCalc()"><div class="cval" id="cmpRateV">1,380원</div></div>
+      <div class="ctrl-row"><div class="clabel">환율 (원/$) <button onclick="fetchRate('cmpRate','cmpRateV',cmpCalc)" style="background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.25);border-radius:4px;color:var(--accent);font-size:9px;cursor:pointer;padding:4px 7px;vertical-align:middle;touch-action:manipulation">🔄 자동</button></div><input type="range" min="1200" max="1700" step="10" value="1380" id="cmpRate" oninput="cmpCalc()"><div class="cval" id="cmpRateV">1,380원</div></div>
       <div class="ctrl-row"><div class="clabel">목표 수익률</div><div class="tgt-btns" id="cmpTgts"><button class="tbt on" onclick="setCmpTgt(3,this)">3%</button><button class="tbt" onclick="setCmpTgt(5,this)">5%</button><button class="tbt" onclick="setCmpTgt(10,this)">10%</button></div><div class="cval" id="cmpTgtV">3%</div></div>
     </div>
   </div>
@@ -448,14 +618,44 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
   <div style="background:rgba(46,204,138,.05);border:1px solid rgba(46,204,138,.15);border-radius:8px;padding:10px 16px;margin-bottom:18px;font-size:12px;color:var(--text3)">
     <span style="color:var(--green);font-family:var(--mono);font-size:11px;font-weight:600">☁️ Firebase 실시간 동기화</span> — 어느 기기·브라우저에서 열어도 동일한 매매일지가 자동 표시됩니다.
   </div>
+
+  <!-- 사이클 기본 설정 — 모바일 최적화 -->
   <div class="g2" style="margin-bottom:16px">
     <div class="card card-a">
       <div class="mlabel" style="margin-bottom:14px">사이클 기본 설정</div>
-      <div style="display:flex;flex-direction:column;gap:12px">
-        <div><label class="jlabel">총 투자금 (원)</label><input type="number" id="jFund" value="10000000" step="1000000" class="jinput" oninput="jCalc()"></div>
-        <div><label class="jlabel">분할 횟수</label><input type="number" id="jSplit" value="40" min="10" max="100" class="jinput" oninput="jCalc()"></div>
-        <div><label class="jlabel">환율 (원/$) <span id="jRateStatus" style="font-size:9px;margin-left:4px"></span></label><div style="display:flex;gap:6px"><input type="number" id="jRate" value="1380" step="10" class="jinput" oninput="jCalc()" style="flex:1"><button onclick="fetchRate('jRate',null,null)" class="jbtn" style="padding:7px 10px;font-size:10px;white-space:nowrap">🔄 자동</button></div></div>
-        <div><label class="jlabel">목표 수익률 (%)</label><input type="number" id="jTarget" value="3" min="1" max="20" step="0.5" class="jinput" oninput="jCalc()"></div>
+      <div class="journal-settings-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label class="jlabel">총 투자금 (원)</label>
+          <!-- 모바일: inputmode="numeric" 으로 숫자 키패드 강제 -->
+          <input type="text" inputmode="numeric" pattern="[0-9]*"
+            id="jFund" value="10000000"
+            class="jinput" oninput="jFundInput(this);jCalc()"
+            placeholder="10000000">
+        </div>
+        <div>
+          <label class="jlabel">분할 횟수</label>
+          <input type="text" inputmode="numeric" pattern="[0-9]*"
+            id="jSplit" value="40"
+            class="jinput" oninput="jIntInput(this);jCalc()"
+            placeholder="40">
+        </div>
+        <div>
+          <label class="jlabel">환율 (원/$) <span id="jRateStatus" style="font-size:9px;margin-left:4px"></span></label>
+          <div style="display:flex;gap:6px">
+            <input type="text" inputmode="numeric" pattern="[0-9]*"
+              id="jRate" value="1380"
+              class="jinput" oninput="jIntInput(this);jCalc()"
+              placeholder="1380" style="flex:1">
+            <button onclick="fetchRate('jRate',null,null)" class="jbtn" style="padding:10px;font-size:10px;white-space:nowrap;flex-shrink:0">🔄</button>
+          </div>
+        </div>
+        <div>
+          <label class="jlabel">목표 수익률 (%)</label>
+          <input type="text" inputmode="decimal" pattern="[0-9.]*"
+            id="jTarget" value="3"
+            class="jinput" oninput="jDecimalInput(this);jCalc()"
+            placeholder="3">
+        </div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:12px">
@@ -464,24 +664,50 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
     </div>
   </div>
 
-  <!-- 입력 폼 -->
+  <!-- 매수 기록 추가 폼 — 모바일 최적화 -->
   <div class="card" style="margin-bottom:16px">
     <div class="mlabel" style="margin-bottom:14px">매수 기록 추가</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end">
-      <div><label class="jlabel">매수일</label><input type="date" id="jDate" class="jinput"></div>
-      <div><label class="jlabel">매수가 ($)</label><input type="number" id="jPrice" step="0.01" placeholder="예: 54.50" class="jinput" oninput="jPreview()"></div>
-      <div><label class="jlabel">수량 (주)</label><input type="number" id="jQty" step="0.001" placeholder="예: 3.245" class="jinput" oninput="jPreview()"></div>
-      <div><label class="jlabel">배율 (자동)</label><div id="jMultPrev" style="height:38px;display:flex;align-items:center;padding:0 12px;background:var(--bg4);border-radius:8px;border:1px solid var(--border);font-family:var(--mono);font-size:12px;color:var(--text3)">입력 후 표시</div></div>
-      <button class="jbtn" onclick="jAdd()">+ 추가</button>
+    <div class="add-form-grid">
+      <div>
+        <label class="jlabel">매수일</label>
+        <input type="date" id="jDate" class="jinput">
+      </div>
+      <div>
+        <label class="jlabel">매수가 ($)</label>
+        <!-- 핵심 수정: type=text + inputmode=decimal — 갤럭시에서 소수점 입력 허용 -->
+        <input type="text" inputmode="decimal" pattern="[0-9.]*"
+          id="jPrice" placeholder="예: 54.50"
+          class="jinput" oninput="jDecimalInput(this);jPreview()">
+      </div>
+      <div>
+        <label class="jlabel">수량 (주)</label>
+        <input type="text" inputmode="decimal" pattern="[0-9.]*"
+          id="jQty" placeholder="예: 3.245"
+          class="jinput" oninput="jDecimalInput(this);jPreview()">
+      </div>
+      <div>
+        <label class="jlabel">배율 (자동)</label>
+        <div id="jMultPrev" style="height:48px;display:flex;align-items:center;padding:0 12px;background:var(--bg4);border-radius:8px;border:1px solid var(--border);font-family:var(--mono);font-size:14px;color:var(--text3)">입력 후 표시</div>
+      </div>
+      <div class="add-btn-col">
+        <button class="jbtn" onclick="jAdd()" style="width:100%;padding:14px;font-size:14px;font-weight:600">
+          + 매수 추가
+        </button>
+      </div>
     </div>
-    <div id="jPrevInfo" style="display:none;margin-top:10px;font-family:var(--mono);font-size:10px;color:var(--text3);padding:7px 11px;background:var(--bg4);border-radius:6px"></div>
+    <div id="jPrevInfo" style="display:none;margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--text3);padding:9px 11px;background:var(--bg4);border-radius:6px;line-height:1.7"></div>
   </div>
 
   <!-- 현재가 입력 -->
   <div class="card card-g" style="margin-bottom:16px">
     <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap">
-      <div style="min-width:160px"><label class="jlabel">현재가 입력 ($)</label><input type="number" id="jCurPrice" step="0.01" placeholder="SOXL 현재가" class="jinput" oninput="jUpdatePnl()"></div>
-      <div id="jPnlDisp" style="flex:1;min-width:200px;padding-top:18px"></div>
+      <div style="min-width:180px;flex:1">
+        <label class="jlabel">현재가 입력 ($)</label>
+        <input type="text" inputmode="decimal" pattern="[0-9.]*"
+          id="jCurPrice" placeholder="SOXL 현재가 (예: 55.00)"
+          class="jinput" oninput="jDecimalInput(this);jUpdatePnl()">
+      </div>
+      <div id="jPnlDisp" style="flex:2;min-width:200px;padding-top:18px"></div>
     </div>
   </div>
 
@@ -508,9 +734,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
   <div class="card" style="margin-bottom:16px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <div class="mlabel" style="margin-bottom:0">매수 내역</div>
-      <div style="display:flex;gap:7px">
-        <button class="jbtn" onclick="jExportJSON()">JSON 내보내기</button>
-        <button class="jbtn" onclick="jExport()">CSV 내보내기</button>
+      <div style="display:flex;gap:7px;flex-wrap:wrap">
+        <button class="jbtn" onclick="jExportJSON()">JSON</button>
+        <button class="jbtn" onclick="jExport()">CSV</button>
         <button class="jbtn jbtn-r" onclick="jClear()">전체 삭제</button>
       </div>
     </div>
@@ -547,11 +773,59 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
     <div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-bottom:20px;line-height:1.7">
       스캔 후 열리는 URL을 브라우저에서 열거나<br>같은 HTML 파일에서 가져오기 해주세요
     </div>
-    <button onclick="jCloseQR()" style="padding:10px 28px;background:rgba(240,192,64,.12);border:1px solid rgba(240,192,64,.3);border-radius:8px;color:var(--accent);font-family:var(--mono);font-size:12px;cursor:pointer">닫기</button>
+    <button onclick="jCloseQR()" style="padding:10px 28px;background:rgba(240,192,64,.12);border:1px solid rgba(240,192,64,.3);border-radius:8px;color:var(--accent);font-family:var(--mono);font-size:12px;cursor:pointer;touch-action:manipulation">닫기</button>
   </div>
 </div>
 
 <script>
+// ═══════════════════════════════════════
+//  모바일 입력 유틸 — 갤럭시 Android 패치
+// ═══════════════════════════════════════
+
+// 정수만 허용 (총 투자금, 환율, 분할횟수)
+function jFundInput(el) {
+  // 숫자 외 제거
+  let v = el.value.replace(/[^0-9]/g, '');
+  if (v !== el.value) el.value = v;
+}
+function jIntInput(el) {
+  let v = el.value.replace(/[^0-9]/g, '');
+  if (v !== el.value) el.value = v;
+}
+// 소수점 허용 (가격, 수량, 목표수익률)
+function jDecimalInput(el) {
+  let v = el.value.replace(/[^0-9.]/g, '');
+  // 소수점 두 개 방지
+  const parts = v.split('.');
+  if (parts.length > 2) v = parts[0] + '.' + parts.slice(1).join('');
+  if (v !== el.value) el.value = v;
+}
+
+// ─── range 슬라이더 터치 이벤트 보완 (삼성 인터넷 호환) ───
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('input[type=range]').forEach(function(slider) {
+    // 삼성 인터넷에서 oninput이 안 먹힐 때를 대비해 touchmove도 추가
+    slider.addEventListener('touchstart', function(e) {
+      e.stopPropagation();
+    }, { passive: true });
+    slider.addEventListener('touchmove', function(e) {
+      e.stopPropagation();
+      // oninput 강제 발생
+      slider.dispatchEvent(new Event('input', { bubbles: true }));
+    }, { passive: true });
+  });
+
+  // 오늘 날짜 자동 설정
+  const dateEl = document.getElementById('jDate');
+  if (dateEl && !dateEl.value) {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    dateEl.value = y + '-' + m + '-' + d;
+  }
+});
+
 // ═══════════════════════════════════════
 //  데이터
 // ═══════════════════════════════════════
@@ -676,7 +950,7 @@ let charts={};
 function destroyC(...ids){ids.forEach(id=>{if(charts[id]){charts[id].destroy();delete charts[id];}});}
 
 // ═══════════════════════════════════════
-//  네비게이션 — 단일 함수, 재정의 없음
+//  네비게이션
 // ═══════════════════════════════════════
 function go(name, btn){
   document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
@@ -759,14 +1033,12 @@ function btCalc(){
     <div class="metric"><div class="mlabel">확정 수익</div><div class="mval pos">+${(r.conf/10000).toFixed(1)}<span style="font-size:14px">만</span></div></div>
     <div class="metric"><div class="mlabel">미실현익</div><div class="mval ${r.lastU>=0?'pos':'neg'}">${r.lastU>=0?'+':''}${(r.lastU/10000).toFixed(1)}<span style="font-size:14px">만</span></div></div>
     <div class="metric"><div class="mlabel">총 수익률</div><div class="mval acc">+${ret}<span style="font-size:14px">%</span></div></div>`;
-  // 사이클
   let ch='<div style="display:flex;flex-direction:column;gap:8px">';
   if(!r.cycles.length)ch+='<div style="font-family:var(--mono);font-size:11px;color:var(--text3);padding:12px;text-align:center">목표 수익률 미달성</div>';
   else r.cycles.forEach(c=>{ch+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;background:var(--bg4);border-radius:8px;border-left:3px solid var(--green)"><span style="font-family:var(--mono);font-size:11px;color:var(--text3)">사이클 ${c.num} — ${c.date}</span><span style="font-family:var(--mono);font-size:12px;color:var(--green)">+${(c.gain/10000).toFixed(2)}만 (+${c.pct.toFixed(2)}%)</span></div>`;});
   if(r.lastAvg)ch+=`<div style="padding:11px 14px;background:var(--bg4);border-radius:8px;font-family:var(--mono);font-size:11px;color:var(--text3)">잔여 보유 | 평단 $${r.lastAvg.toFixed(2)} / 3.18 종가 $${r.lastC.toFixed(2)} / ${((r.lastC/r.lastAvg-1)*100).toFixed(2)}%</div>`;
   ch+='</div>';
   document.getElementById('btCycleBox').innerHTML=ch;
-  // 상세 테이블
   const tb=document.getElementById('btDetailBody'); tb.innerHTML='';
   r.rows.forEach(row=>{
     const pc=row.pct>=0?'pos':'neg';
@@ -818,7 +1090,7 @@ function cmpCalc(){
 }
 
 // ═══════════════════════════════════════
-//  Firebase 초기화 (compat SDK)
+//  Firebase 초기화
 // ═══════════════════════════════════════
 (function() {
   try {
@@ -850,10 +1122,9 @@ function cmpCalc(){
 })();
 
 // ═══════════════════════════════════════
-//  실시간 환율 (ExchangeRate-API, 무료·키 불필요)
+//  실시간 환율
 // ═══════════════════════════════════════
 let _cachedRate = null, _rateTime = 0;
-
 async function fetchRate(inputId, displayId, callback) {
   const statusEl = document.getElementById('jRateStatus');
   if (_cachedRate && Date.now() - _rateTime < 300000) {
@@ -883,22 +1154,12 @@ function _applyRate(rate, inputId, displayId, callback) {
 
 // ═══════════════════════════════════════
 //  SOXL 가격 자동 불러오기
-//  3중 폴백 구조:
-//  1순위: Finnhub 무료 API (실제 키 발급 시 정확)
-//  2순위: corsproxy.io + Yahoo Finance (CORS 우회)
-//  3순위: 수동 입력 안내
 // ═══════════════════════════════════════
-
-// ▶ Finnhub 무료 API 키 발급: finnhub.io/register (무료, 분당 60회)
-// ▶ 아래 키를 발급받은 실제 키로 교체하면 더 정확한 실시간 가격 제공
 const FINNHUB_KEY = 'sandbox_c2l4q4iad3i9tlpc0jug';
-
 let _soxlPrice = null, _soxlPrevClose = null, _soxlFetchTime = 0;
 
-// 미국 주식 장 마감 여부 판단 (ET 기준)
 function _isMarketClosed() {
   const now = new Date();
-  // UTC → ET 변환 (EDT: UTC-4, EST: UTC-5)
   const month = now.getUTCMonth() + 1;
   const isDST = month >= 3 && month <= 11;
   const etOffset = isDST ? -4 : -5;
@@ -906,9 +1167,7 @@ function _isMarketClosed() {
   const etMin = now.getUTCMinutes();
   const etTime = etHour * 60 + etMin;
   const dayOfWeek = now.getUTCDay();
-  // 주말이면 마감
   if (dayOfWeek === 0 || dayOfWeek === 6) return true;
-  // 장 시간: 9:30 ~ 16:00 ET
   return etTime < 9 * 60 + 30 || etTime >= 16 * 60;
 }
 
@@ -920,7 +1179,6 @@ function _updateSoxlUI(price, change, changePct, prevClose, sourceName, isClose)
   const applyCurrentBtn = document.getElementById('jSoxlApplyCurrentBtn');
   const applyEntryBtn = document.getElementById('jSoxlApplyEntryBtn');
   const statusEl = document.getElementById('jSoxlStatus');
-
   if (dispEl) dispEl.textContent = '$' + price.toFixed(2);
   if (changeEl) {
     const col = change >= 0 ? 'var(--green)' : 'var(--red)';
@@ -938,21 +1196,13 @@ function _updateSoxlUI(price, change, changePct, prevClose, sourceName, isClose)
   }
 }
 
-// 1순위: Finnhub API
 async function _fetchViafinnhub() {
   const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=SOXL&token=${FINNHUB_KEY}`);
   const data = await res.json();
   if (!data || !data.c || data.c <= 0) throw new Error('Finnhub 데이터 없음');
-  return {
-    price: data.c,
-    change: data.d || 0,
-    changePct: data.dp || 0,
-    prevClose: data.pc || 0,
-    source: 'Finnhub'
-  };
+  return { price: data.c, change: data.d || 0, changePct: data.dp || 0, prevClose: data.pc || 0, source: 'Finnhub' };
 }
 
-// 2순위: corsproxy.io + Yahoo Finance
 async function _fetchViaYahoo() {
   const yahooUrl = 'https://query1.finance.yahoo.com/v8/finance/chart/SOXL?interval=1d&range=2d';
   const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(yahooUrl);
@@ -970,32 +1220,13 @@ async function _fetchViaYahoo() {
 async function fetchSoxlPrice(manual = false) {
   const btn = document.getElementById('jSoxlFetchBtn');
   const statusEl = document.getElementById('jSoxlStatus');
-  // 5분 캐시 (수동 호출은 항상 갱신)
   if (!manual && _soxlPrice && Date.now() - _soxlFetchTime < 300000) return;
-
   if (btn) { btn.textContent = '⏳ 불러오는 중...'; btn.disabled = true; }
   if (statusEl) statusEl.textContent = '가격 데이터 요청 중...';
-
   const isClosed = _isMarketClosed();
   let result = null;
-
-  // 1순위 시도
-  try {
-    result = await _fetchViafinnhub();
-  } catch(e) {
-    console.warn('Finnhub 실패, Yahoo 시도:', e);
-    if (statusEl) statusEl.textContent = '1차 API 실패 → Yahoo Finance 시도 중...';
-  }
-
-  // 2순위 시도
-  if (!result) {
-    try {
-      result = await _fetchViaYahoo();
-    } catch(e) {
-      console.warn('Yahoo도 실패:', e);
-    }
-  }
-
+  try { result = await _fetchViafinnhub(); } catch(e) { console.warn('Finnhub 실패:', e); }
+  if (!result) { try { result = await _fetchViaYahoo(); } catch(e) { console.warn('Yahoo도 실패:', e); } }
   if (result) {
     _soxlPrice = result.price;
     _soxlPrevClose = result.prevClose;
@@ -1003,7 +1234,6 @@ async function fetchSoxlPrice(manual = false) {
     _updateSoxlUI(result.price, result.change, result.changePct, result.prevClose, result.source, isClosed);
     if (btn) { btn.textContent = '✅ 완료 — 다시 불러오기'; btn.disabled = false; }
   } else {
-    // 3순위: 수동 입력 안내
     const dispEl = document.getElementById('jSoxlPriceDisp');
     if (dispEl) dispEl.textContent = '수동 입력';
     if (statusEl) statusEl.innerHTML = '<span style="color:var(--red)">자동 불러오기 실패</span><br><span style="color:var(--accent)">아래 매수가란에 직접 입력하세요</span>';
@@ -1022,7 +1252,6 @@ function applySoxlToCurrent() {
   if (el) { el.value = _soxlPrice.toFixed(2); jUpdatePnl(); }
 }
 
-// 페이지 로드 시 자동 실행
 window.addEventListener('load', () => {
   setTimeout(() => fetchRate('jRate', null, null), 600);
   setTimeout(() => fetchSoxlPrice(false), 1200);
@@ -1065,7 +1294,6 @@ function jLoad(){
       if(sv.target) document.getElementById('jTarget').value=sv.target;
     }
   }
-
   function _startFirebase() {
     if (_fbListening) return;
     _fbListening = true;
@@ -1079,7 +1307,6 @@ function jLoad(){
       jCalc(); jRenderCycles();
     });
   }
-
   if (window._fbReady) {
     _startFirebase();
   } else {
@@ -1111,7 +1338,6 @@ function jShowSaveStatus(msg, err=false){
   setTimeout(()=>{ el.style.opacity='0'; },2500);
 }
 
-// ── JSON 내보내기 ──
 function jExportJSON(){
   const data={
     version:1, exportedAt:new Date().toISOString(),
@@ -1130,7 +1356,6 @@ function jExportJSON(){
   a.click();
 }
 
-// ── JSON 가져오기 ──
 function jImportJSON(){
   const input=document.createElement('input');
   input.type='file'; input.accept='.json,application/json';
@@ -1143,17 +1368,14 @@ function jImportJSON(){
         const data=JSON.parse(e.target.result);
         if(!data.entries||!data.cycles) throw new Error('형식 오류');
         if(!confirm('기존 매매일지를 불러온 데이터로 교체합니다. 계속하시겠습니까?')) return;
-        jEntries=data.entries;
-        jCycles=data.cycles;
+        jEntries=data.entries; jCycles=data.cycles;
         if(data.settings){
           if(data.settings.fund) document.getElementById('jFund').value=data.settings.fund;
           if(data.settings.split) document.getElementById('jSplit').value=data.settings.split;
           if(data.settings.rate) document.getElementById('jRate').value=data.settings.rate;
           if(data.settings.target) document.getElementById('jTarget').value=data.settings.target;
         }
-        jSave();
-        jCalc();
-        jRenderCycles();
+        jSave(); jCalc(); jRenderCycles();
         alert('불러오기 완료! 매수 내역 '+jEntries.length+'건, 완료 사이클 '+jCycles.length+'회');
       } catch(err){ alert('파일 형식이 올바르지 않습니다.\n'+err.message); }
     };
@@ -1162,7 +1384,6 @@ function jImportJSON(){
   input.click();
 }
 
-// ── QR코드로 데이터 공유 ──
 function jShareQR(){
   const data={v:1,e:jEntries,c:jCycles,s:{
     fund:parseFloat(document.getElementById('jFund').value)||10000000,
@@ -1171,10 +1392,7 @@ function jShareQR(){
     target:parseFloat(document.getElementById('jTarget').value)||3
   }};
   const json=JSON.stringify(data);
-  if(json.length>2000){
-    alert('데이터가 너무 많아 QR코드로 공유할 수 없습니다.\n→ JSON 파일로 내보내기 후 다른 기기에서 가져오기를 사용하세요.');
-    return;
-  }
+  if(json.length>2000){ alert('데이터가 너무 많아 QR코드로 공유할 수 없습니다.\n→ JSON 파일로 내보내기 후 다른 기기에서 가져오기를 사용하세요.'); return; }
   const encoded=encodeURIComponent(json);
   const qrUrl='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encoded;
   const modal=document.getElementById('jQRModal');
@@ -1183,11 +1401,8 @@ function jShareQR(){
   modal.style.display='flex';
 }
 
-function jCloseQR(){
-  document.getElementById('jQRModal').style.display='none';
-}
+function jCloseQR(){ document.getElementById('jQRModal').style.display='none'; }
 
-// ── URL 파라미터로 데이터 복원 ──
 function jCheckURLData(){
   const params=new URLSearchParams(window.location.search);
   const d=params.get('d');
@@ -1208,12 +1423,14 @@ function jCheckURLData(){
 }
 
 function jSettings(){
+  // type=text로 바뀌었으므로 parseFloat/parseInt로 안전하게 파싱
   const fund=parseFloat(document.getElementById('jFund').value)||10000000;
   const split=parseInt(document.getElementById('jSplit').value)||40;
   const rate=parseFloat(document.getElementById('jRate').value)||1380;
   const target=parseFloat(document.getElementById('jTarget').value)||3;
   return{fund,split,rate,target,unit:fund/split};
 }
+
 function jCalc(){
   const{fund,split,rate,target,unit}=jSettings();
   document.getElementById('jUnitKRW').textContent=(unit/10000).toFixed(1)+'만원';
@@ -1222,6 +1439,7 @@ function jCalc(){
   document.getElementById('jTargetPct').textContent='완료 시 +'+target.toFixed(1)+'%';
   jRender();
 }
+
 function jPreview(){
   const price=parseFloat(document.getElementById('jPrice').value);
   const qty=parseFloat(document.getElementById('jQty').value);
@@ -1235,6 +1453,7 @@ function jPreview(){
   info.style.display='block';
   info.textContent=`매수금액: ${Math.round(krw).toLocaleString()}원 (${(krw/10000).toFixed(2)}만) | 배율: ×${mult}`;
 }
+
 function jAdd(){
   const date=document.getElementById('jDate').value;
   const price=parseFloat(document.getElementById('jPrice').value);
@@ -1249,10 +1468,11 @@ function jAdd(){
   document.getElementById('jPrevInfo').style.display='none';
   document.getElementById('jMultPrev').textContent='입력 후 표시';
   document.getElementById('jMultPrev').style.color='var(--text3)';
-  jSave();
-  jRender();
+  jSave(); jRender();
 }
+
 function jDel(id){jEntries=jEntries.filter(e=>e.id!==id);jSave();jRender();}
+
 function jRender(){
   const{fund,rate}=jSettings();
   const cur=parseFloat(document.getElementById('jCurPrice').value)||null;
@@ -1270,13 +1490,14 @@ function jRender(){
     const mc=mbCls(e.mult);
     const pnlH=pnlK!=null?`<span class="${pnlK>=0?'pos':'neg'}">${pnlK>=0?'+':''}${(pnlK/10000).toFixed(2)}만<br><span style="font-size:9px">(${pnlP>=0?'+':''}${pnlP.toFixed(2)}%)</span></span>`:'<span style="color:var(--text3)">-</span>';
     const wCol=w>80?'var(--red)':w>50?'var(--accent2)':'var(--text2)';
-    return `<tr><td style="color:var(--text3)">${i+1}</td><td>${e.date}</td><td class="acc">$${e.price.toFixed(2)}</td><td>${e.qty.toFixed(3)}</td><td>${(e.krw/10000).toFixed(2)}</td><td><span class="mb ${mc}" style="width:38px;height:20px;font-size:10px">×${e.mult}</span></td><td>${cumQ.toFixed(3)}</td><td class="acc">$${avg.toFixed(2)}</td><td>${(cumK/10000).toFixed(1)}</td><td style="color:${wCol}">${w.toFixed(1)}%</td><td>${pnlH}</td><td><button onclick="jDel(${e.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:2px 6px;border-radius:4px" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">✕</button></td></tr>`;
+    return `<tr><td style="color:var(--text3)">${i+1}</td><td>${e.date}</td><td class="acc">$${e.price.toFixed(2)}</td><td>${e.qty.toFixed(3)}</td><td>${(e.krw/10000).toFixed(2)}</td><td><span class="mb ${mc}" style="width:38px;height:20px;font-size:10px">×${e.mult}</span></td><td>${cumQ.toFixed(3)}</td><td class="acc">$${avg.toFixed(2)}</td><td>${(cumK/10000).toFixed(1)}</td><td style="color:${wCol}">${w.toFixed(1)}%</td><td>${pnlH}</td><td><button onclick="jDel(${e.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:6px 10px;border-radius:4px;min-height:44px;touch-action:manipulation" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">✕</button></td></tr>`;
   }).join('');
   const tQ=jEntries.reduce((s,e)=>s+e.qty,0);
   const tK=jEntries.reduce((s,e)=>s+e.krw,0);
   const avgU=(tK/rate)/tQ;
   jUpdateM(tQ,tK,avgU,fund,cur); jGauge(tK,fund);
 }
+
 function jUpdateM(tQ,tK,avg,fund,cur){
   const{rate,target}=jSettings();
   const w=fund>0?(tK/fund*100):0;
@@ -1292,6 +1513,7 @@ function jUpdateM(tQ,tK,avg,fund,cur){
     <div class="metric"><div class="mlabel">현재가 손익</div><div class="mval ${pK===null?'neu':pK>=0?'pos':'neg'}" style="font-size:${pK!=null?'16px':'20px'}">${pK!=null?(pK>=0?'+':'')+(pK/10000).toFixed(2)+'만<br><span style="font-size:11px">'+(pP>=0?'+':'')+pP.toFixed(2)+'%</span>':'-'}</div></div>
     <div class="metric"><div class="mlabel">목표 매도가</div><div class="mval pos" style="font-size:20px">${tgt>0?'$'+tgt.toFixed(2):'-'}</div></div>`;
 }
+
 function jGauge(tK,fund){
   const pct=fund>0?Math.min(100,tK/fund*100):0;
   document.getElementById('jGaugeBar').style.width=pct+'%';
@@ -1307,6 +1529,7 @@ function jGauge(tK,fund){
     return `<span class="stage-chip ${done||active?'done':'pending'}" style="color:${s.col};background:${s.bg};border-color:${s.brd}">${s.label} ${done?'✓':active?'▶':'○'}</span>`;
   }).join('');
 }
+
 function jUpdatePnl(){
   const cur=parseFloat(document.getElementById('jCurPrice').value);
   const{rate,target}=jSettings();
@@ -1321,6 +1544,7 @@ function jUpdatePnl(){
   d.innerHTML=`<div style="display:flex;gap:20px;flex-wrap:wrap"><div><div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">현재 평가손익</div><div style="font-family:var(--display);font-size:26px;color:${col};line-height:1.1">${pK>=0?'+':''}${(pK/10000).toFixed(2)}만원</div><div style="font-family:var(--mono);font-size:11px;color:${col}">(${pP>=0?'+':''}${pP.toFixed(2)}%)</div></div><div style="width:1px;height:44px;background:var(--border)"></div><div><div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">목표까지 남은 상승폭</div><div style="font-family:var(--display);font-size:26px;color:${rem>0?'var(--text3)':'var(--green)'};line-height:1.1">${rem>0?'+':''}$${rem.toFixed(2)}</div><div style="font-family:var(--mono);font-size:11px;color:var(--text3)">목표가 $${tgtP.toFixed(2)} | 현재 $${cur.toFixed(2)}</div></div></div>`;
   jRender();
 }
+
 function jCompleteCycle(){
   if(!jEntries.length){alert('매수 내역이 없습니다.');return;}
   const{rate,target}=jSettings();
@@ -1337,6 +1561,7 @@ function jCompleteCycle(){
   document.getElementById('jPnlDisp').innerHTML='';
   jRenderCycles(); jRender();
 }
+
 function jRenderCycles(){
   const box=document.getElementById('jCycleBox');
   const sum=document.getElementById('jSummary');
@@ -1347,7 +1572,9 @@ function jRenderCycles(){
   sum.style.display='block';
   sum.innerHTML=`<div style="display:flex;gap:28px;flex-wrap:wrap"><div><div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">완료 사이클</div><div style="font-family:var(--display);font-size:26px;color:var(--text)">${jCycles.length}회</div></div><div><div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">누적 확정 수익</div><div style="font-family:var(--display);font-size:26px;color:var(--green)">+${(tg/10000).toFixed(2)}만원</div></div><div><div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">평균 사이클 수익률</div><div style="font-family:var(--display);font-size:26px;color:var(--accent)">+${avgR.toFixed(2)}%</div></div></div>`;
 }
+
 function jClear(){if(!confirm('매수 내역을 모두 삭제하시겠습니까?'))return;jEntries=[];jSave();jRender();}
+
 function jExport(){
   if(!jEntries.length){alert('내보낼 내역이 없습니다.');return;}
   const{rate,fund}=jSettings();
@@ -1359,11 +1586,17 @@ function jExport(){
   a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
   a.download='soxl_journal.csv';a.click();
 }
+
 function jInit(){
   jLoad();
   jCheckURLData();
-  if(!document.getElementById('jDate').value){
-    document.getElementById('jDate').value=new Date().toISOString().split('T')[0];
+  const dateEl = document.getElementById('jDate');
+  if(dateEl && !dateEl.value){
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, '0');
+    const d = String(today.getDate()).padStart(2, '0');
+    dateEl.value = y + '-' + m + '-' + d;
   }
   jCalc();
   jRenderCycles();
